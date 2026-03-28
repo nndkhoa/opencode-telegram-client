@@ -31,6 +31,7 @@ export function makeCmdNewHandler(registry: SessionRegistry, openCodeUrl: string
       const sessionId = await createSession(openCodeUrl);
       registry.createNamed(chatId, name, sessionId);
       logger.info({ chatId, name, sessionId }, "Created named session");
+      await ctx.reply("─────────────────────");
       await ctx.reply(`✅ Created and switched to session "${name}".`);
     } catch (err) {
       logger.error({ err, chatId }, "Failed to create named session");

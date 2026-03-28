@@ -17,6 +17,7 @@ export function makeCmdSwitchHandler(registry: SessionRegistry) {
 
     if (switched) {
       logger.info({ chatId, name }, "Switched session");
+      await ctx.reply("─────────────────────");
       await ctx.reply(`✅ Switched to session "${name}".`);
     } else {
       await ctx.reply(`❌ Session "${name}" not found. Use /sessions to see available sessions.`);

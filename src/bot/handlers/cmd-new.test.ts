@@ -66,7 +66,7 @@ describe("makeCmdNewHandler", () => {
 
     expect(mockCreateSession).toHaveBeenCalled();
     expect(registry.createNamed).toHaveBeenCalled();
-    const replyArg: string = ctx.reply.mock.calls[0][0];
+    const replyArg: string = ctx.reply.mock.calls[1][0];
     expect(replyArg).toMatch(/✅ Created and switched to session "session-\d+"\./);
   });
 
