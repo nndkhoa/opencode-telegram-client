@@ -6,6 +6,7 @@ export type SseOptions = {
   baseUrl: string;
   signal: AbortSignal;
   onEvent?: (event: OpenCodeEvent) => void;
+  onError?: (err: unknown) => void | Promise<void>;
 };
 
 const BACKOFF_BASE_MS = 1_000;
@@ -19,7 +20,7 @@ function backoffDelay(attempt: number): number {
 }
 
 export async function startSseLoop(opts: SseOptions): Promise<void> {
-  const { baseUrl, signal, onEvent } = opts;
+  const { baseUrl, signal, onEvent, onError } = opts;
   const url = new URL("/event", baseUrl).toString();
   let attempt = 0;
 
@@ -56,6 +57,9 @@ export async function startSseLoop(opts: SseOptions): Promise<void> {
       });
     } catch (err) {
       if (signal.aborted) break;
+      if (onError) {
+        await Promise.resolve(onError(err)).catch(() => {});
+      }
       const delay = backoffDelay(attempt);
       attempt++;
       logger.warn({ err, delay, attempt }, `SSE disconnected — reconnecting in ${delay}ms`);

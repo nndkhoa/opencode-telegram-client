@@ -3,22 +3,22 @@ import { config } from "../config/env.js";
 import { logger } from "../logger.js";
 import { dmOnlyMiddleware } from "./middleware/dm-only.js";
 import { allowlistMiddleware } from "./middleware/allowlist.js";
+import { makeMessageHandler } from "./handlers/message.js";
+import type { StreamingStateManager } from "../opencode/streaming-state.js";
 
-export const bot = new Bot(config.botToken);
+export function createBot(manager: StreamingStateManager): Bot {
+  const bot = new Bot(config.botToken);
 
-// Middleware order: DM gate → allowlist → feature handlers (per D-04)
-bot.use(dmOnlyMiddleware);
-bot.use(allowlistMiddleware(config.allowedUserIds));
+  // Middleware order: DM gate → allowlist → feature handlers (per D-04)
+  bot.use(dmOnlyMiddleware);
+  bot.use(allowlistMiddleware(config.allowedUserIds));
 
-// Phase 1 placeholder handler — removed in Phase 2 when real handlers are added
-bot.on("message:text", async (ctx) => {
-  logger.info(
-    { userId: ctx.from?.id, chatId: ctx.chat?.id, text: ctx.message.text },
-    "Message received (Phase 1 echo)"
-  );
-  await ctx.reply(`Echo (Phase 1): ${ctx.message.text}`);
-});
+  // Phase 2: real message handler (replaces Phase 1 echo)
+  bot.on("message:text", makeMessageHandler(manager, config.openCodeUrl));
 
-bot.catch((err) => {
-  logger.error({ err }, "Unhandled bot error");
-});
+  bot.catch((err) => {
+    logger.error({ err }, "Unhandled bot error");
+  });
+
+  return bot;
+}

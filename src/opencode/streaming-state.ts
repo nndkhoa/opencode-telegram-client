@@ -46,6 +46,18 @@ export class StreamingStateManager {
     }
   }
 
+  async endAllTurnsWithError(api: Api, errorText: string): Promise<void> {
+    const edits: Promise<unknown>[] = [];
+    for (const [sessionId, turn] of this.turns.entries()) {
+      this.busy.set(turn.chatId, false);
+      edits.push(
+        api.editMessageText(turn.chatId, turn.messageId, errorText).catch(() => {})
+      );
+      this.turns.delete(sessionId);
+    }
+    await Promise.all(edits);
+  }
+
   handleEvent(event: OpenCodeEvent, bot: Api): void {
     if (event.type === "message.part.delta") {
       const { sessionID, field, delta } = (event as MessagePartDeltaEvent).properties;
