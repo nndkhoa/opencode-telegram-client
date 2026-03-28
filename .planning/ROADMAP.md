@@ -92,7 +92,7 @@ Plans:
 **Goal:** Users can switch the active AI model globally via `/model <name>` and list available models with `/model`
 **Requirements**: FILE-02
 **Depends on:** Phase 4
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 04.1-01-PLAN.md — OpenCode config API client + /model command handler + bot wiring
