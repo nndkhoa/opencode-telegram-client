@@ -68,7 +68,7 @@
 - [x] **INFRA-01**: Project is TypeScript with strict mode enabled
 - [x] **INFRA-02**: Configuration (bot token, allowlist, OpenCode URL) is loaded from environment variables / `.env` file
 - [ ] **INFRA-03**: `README.md` documents setup, configuration, and how to run
-- [ ] **INFRA-04**: Bot connects to OpenCode via a single shared SSE connection (`GET /event`) and routes events by session ID
+- [x] **INFRA-04**: Bot connects to OpenCode via a single shared SSE connection (`GET /event`) and routes events by session ID
 
 ## v2 Requirements
 
@@ -103,7 +103,7 @@
 | ACC-03 | Phase 1 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |
-| INFRA-04 | Phase 1 | Pending |
+| INFRA-04 | Phase 1 | Complete |
 | MSG-01 | Phase 2 | Pending |
 | MSG-02 | Phase 2 | Pending |
 | MSG-03 | Phase 2 | Pending |

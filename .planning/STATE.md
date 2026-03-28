@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 01-foundation-01-PLAN.md
-last_updated: "2026-03-28T13:26:41.928Z"
+stopped_at: Completed 01-foundation-02-PLAN.md
+last_updated: "2026-03-28T13:30:54.677Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 01 (foundation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-03-28
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 2 | 2 tasks | 8 files |
+| Phase 01-foundation P02 | 8 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,8 @@ Recent decisions affecting current work:
 - [Init]: Stream plain text during response, apply HTML formatting on final message only
 - [Phase 01-foundation]: parseEnv() extracted to parse-env.ts separate from env.ts singleton — enables test imports without triggering process.exit(1)
 - [Phase 01-foundation]: ESM project with type=module and NodeNext — all imports use .js extensions even for TypeScript source
+- [Phase 01-foundation]: baseUrl passed as parameter (not config import) to checkHealth() and startSseLoop() for test isolation
+- [Phase 01-foundation]: openWhenHidden: true required in fetchEventSource for Node.js SSE (no browser Page Visibility API)
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T13:26:41.925Z
-Stopped at: Completed 01-foundation-01-PLAN.md
+Last session: 2026-03-28T13:30:54.674Z
+Stopped at: Completed 01-foundation-02-PLAN.md
 Resume file: None
