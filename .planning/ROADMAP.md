@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation** - TypeScript project + OpenCode client + shared SSE connection (completed 2026-03-28)
 - [x] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message (completed 2026-03-28)
 - [x] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message (completed 2026-03-28)
-- [ ] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help)
+- [x] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help) (completed 2026-03-28)
 - [ ] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events
 - [ ] **Phase 6: Power Features** - File uploads, model switching, context clear, structured pino logging, README
 
@@ -85,7 +85,7 @@ Plans:
 - [x] 04-01-PLAN.md — TDD: SessionRegistry class (default + named sessions per chat)
 - [x] 04-02-PLAN.md — Refactor StreamingStateManager + message handler to use SessionRegistry; add abortSession()
 - [x] 04-03-PLAN.md — Command handlers: /new, /switch, /sessions
-- [ ] 04-04-PLAN.md — Command handlers: /status, /cancel, /help + bot wiring + setMyCommands
+- [x] 04-04-PLAN.md — Command handlers: /status, /cancel, /help + bot wiring + setMyCommands
 
 ### Phase 5: MCP Questions & Permissions
 **Goal**: OpenCode MCP questions and permission prompts are surfaced interactively in Telegram
@@ -121,6 +121,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
-| 4. Session Commands | 3/4 | In Progress|  |
+| 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |

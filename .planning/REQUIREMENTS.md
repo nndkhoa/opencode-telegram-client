@@ -28,7 +28,7 @@
 - [x] **SESS-03**: User can switch to an existing named session with `/switch <name>`
 - [x] **SESS-04**: User can list all sessions (default + named) with `/sessions`
 - [x] **SESS-05**: Active session pointer persists in memory per chat (survives message-level context, not process restarts)
-- [ ] **SESS-06**: `/status` shows current session ID, OpenCode server health, and active/idle state
+- [x] **SESS-06**: `/status` shows current session ID, OpenCode server health, and active/idle state
 
 ### MCP Questions & Permissions
 
@@ -41,13 +41,13 @@
 
 ### Commands
 
-- [ ] **CMD-01**: `/help` — lists all available commands with descriptions
+- [x] **CMD-01**: `/help` — lists all available commands with descriptions
 - [ ] **CMD-02**: `/new <name>` — creates and switches to a named OpenCode session
 - [ ] **CMD-03**: `/switch <name>` — switches active session to the named session
 - [ ] **CMD-04**: `/sessions` — lists all sessions for the current chat
-- [ ] **CMD-05**: `/status` — shows active session and OpenCode server health
-- [ ] **CMD-06**: `/cancel` — aborts the current in-progress OpenCode request (`POST /session/:id/abort`)
-- [ ] **CMD-07**: BotFather command menu is set with all commands and descriptions
+- [x] **CMD-05**: `/status` — shows active session and OpenCode server health
+- [x] **CMD-06**: `/cancel` — aborts the current in-progress OpenCode request (`POST /session/:id/abort`)
+- [x] **CMD-07**: BotFather command menu is set with all commands and descriptions
 
 ### Files & Context
 
@@ -116,14 +116,14 @@
 | SESS-03 | Phase 4 | Complete |
 | SESS-04 | Phase 4 | Complete |
 | SESS-05 | Phase 4 | Complete |
-| SESS-06 | Phase 4 | Pending |
-| CMD-01 | Phase 4 | Pending |
+| SESS-06 | Phase 4 | Complete |
+| CMD-01 | Phase 4 | Complete |
 | CMD-02 | Phase 4 | Pending |
 | CMD-03 | Phase 4 | Pending |
 | CMD-04 | Phase 4 | Pending |
-| CMD-05 | Phase 4 | Pending |
-| CMD-06 | Phase 4 | Pending |
-| CMD-07 | Phase 4 | Pending |
+| CMD-05 | Phase 4 | Complete |
+| CMD-06 | Phase 4 | Complete |
+| CMD-07 | Phase 4 | Complete |
 | MCP-01 | Phase 5 | Pending |
 | MCP-02 | Phase 5 | Pending |
 | MCP-03 | Phase 5 | Pending |
