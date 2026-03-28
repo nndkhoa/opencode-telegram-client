@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-session-commands 04-01-PLAN.md
-last_updated: "2026-03-28T16:30:38.163Z"
+stopped_at: Completed 04-session-commands 04-02-PLAN.md
+last_updated: "2026-03-28T16:36:15.923Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 12
-  completed_plans: 9
+  completed_plans: 10
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 04 (session-commands) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-03-28
 
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-rendering-pipeline P01 | 3 | 2 tasks | 2 files |
 | Phase 03-rendering-pipeline P02 | 5 | 1 tasks | 2 files |
 | Phase 04-session-commands P01 | 15 | 2 tasks | 2 files |
+| Phase 04-session-commands P02 | 12 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Recent decisions affecting current work:
 - [Phase 03-rendering-pipeline]: escapeHtml applied to interim buffer only — no parse_mode on interim edits (safety without HTML rendering)
 - [Phase 04-session-commands]: createNamed works standalone without prior getOrCreateDefault — avoids ordering constraint for callers
 - [Phase 04-session-commands]: switchTo('default') keyword recognized for switching back to default session by name
+- [Phase 04-session-commands]: StreamingStateManager.sessions Map removed — SessionRegistry owns all chat→session mapping
+- [Phase 04-session-commands]: abortSession resolves on 404 (session already gone is not an error)
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T16:30:38.161Z
-Stopped at: Completed 04-session-commands 04-01-PLAN.md
+Last session: 2026-03-28T16:36:15.920Z
+Stopped at: Completed 04-session-commands 04-02-PLAN.md
 Resume file: None
