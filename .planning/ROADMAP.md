@@ -65,7 +65,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — TDD: renderFinalMessage module (markdown→HTML, split ≤4096, sanitize tags)
+- [x] 03-01-PLAN.md — TDD: renderFinalMessage module (markdown→HTML, split ≤4096, sanitize tags)
 - [ ] 03-02-PLAN.md — Wire rendering into streaming-state.ts (HTML interim escaping, multi-chunk send, D-08 fallback)
 
 ### Phase 4: Session Commands
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
-| 3. Rendering Pipeline | 0/2 | Not started | - |
+| 3. Rendering Pipeline | 1/2 | In Progress|  |
 | 4. Session Commands | 0/TBD | Not started | - |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |

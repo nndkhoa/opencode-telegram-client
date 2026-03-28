@@ -17,8 +17,8 @@
 - [x] **MSG-02**: Bot sends a `typing` chat action while waiting for OpenCode to respond
 - [x] **MSG-03**: Response streams live — bot edits the Telegram message as tokens arrive (throttled, max ~1 edit/500ms)
 - [x] **MSG-04**: After streaming completes, the interim message is replaced with a clean final message rendered as Telegram-safe HTML
-- [ ] **MSG-05**: OpenCode markdown output is converted to Telegram-compatible HTML using `marked` + `sanitize-html` before the final send
-- [ ] **MSG-06**: Messages exceeding 4096 characters are split across multiple messages (no silent truncation)
+- [x] **MSG-05**: OpenCode markdown output is converted to Telegram-compatible HTML using `marked` + `sanitize-html` before the final send
+- [x] **MSG-06**: Messages exceeding 4096 characters are split across multiple messages (no silent truncation)
 - [x] **MSG-07**: Bot sends a clear, actionable error message if OpenCode is unreachable or returns an error
 
 ### Sessions
@@ -109,8 +109,8 @@
 | MSG-03 | Phase 2 | Complete |
 | MSG-04 | Phase 2 | Complete |
 | MSG-07 | Phase 2 | Complete |
-| MSG-05 | Phase 3 | Pending |
-| MSG-06 | Phase 3 | Pending |
+| MSG-05 | Phase 3 | Complete |
+| MSG-06 | Phase 3 | Complete |
 | SESS-01 | Phase 4 | Pending |
 | SESS-02 | Phase 4 | Pending |
 | SESS-03 | Phase 4 | Pending |
