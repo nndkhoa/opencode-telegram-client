@@ -9,10 +9,13 @@ async function fetchActiveModel(baseUrl: string, sessionId: string): Promise<str
     const res = await fetch(new URL(`/session/${sessionId}/message?limit=10`, baseUrl).toString());
     if (!res.ok) return "unknown";
     const msgs = (await res.json()) as Array<{
-      info: { role: string; model?: { providerID: string; modelID: string } };
+      info: { role: string; modelID?: string; providerID?: string };
     }>;
-    const withModel = msgs.find(m => m.info.role === "user" && m.info.model);
-    return withModel?.info.model?.modelID ?? "unknown";
+    // Model info is on assistant messages (info.modelID + info.providerID)
+    const assistant = msgs.find(m => m.info.role === "assistant" && m.info.modelID);
+    if (!assistant?.info.modelID) return "unknown";
+    const { providerID, modelID } = assistant.info;
+    return providerID ? `${providerID}/${modelID}` : modelID!;
   } catch {
     return "unknown";
   }

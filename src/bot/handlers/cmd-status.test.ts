@@ -66,12 +66,13 @@ describe("makeCmdStatusHandler", () => {
     expect(reply).toContain("State: active");
   });
 
-  it("shows model from message list when available", async () => {
+  it("shows model from assistant message when available", async () => {
     mockCheckHealth.mockResolvedValue({ healthy: true, version: "1.3.3" });
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: vi.fn().mockResolvedValue([
-        { info: { role: "user", model: { providerID: "anthropic", modelID: "claude-sonnet-4" } } },
+        { info: { role: "user" } },
+        { info: { role: "assistant", modelID: "claude-sonnet-4", providerID: "anthropic" } },
       ]),
     } as any);
     const registry = makeRegistry("my-project", "sess-123");
@@ -82,7 +83,7 @@ describe("makeCmdStatusHandler", () => {
     await handler(ctx as any);
 
     const reply: string = ctx.reply.mock.calls[0][0];
-    expect(reply).toContain("Model: claude-sonnet-4");
+    expect(reply).toContain("Model: anthropic/claude-sonnet-4");
   });
 
   it("shows degraded output when checkHealth throws (D-10)", async () => {
