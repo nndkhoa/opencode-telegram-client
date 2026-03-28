@@ -2,24 +2,8 @@ import type { Context } from "grammy";
 import type { SessionRegistry } from "../../session/registry.js";
 import type { StreamingStateManager } from "../../opencode/streaming-state.js";
 import { checkHealth } from "../../opencode/health.js";
+import { resolveDisplayModel } from "../../opencode/display-model.js";
 import { logger } from "../../logger.js";
-
-async function fetchActiveModel(baseUrl: string, sessionId: string): Promise<string> {
-  try {
-    const res = await fetch(new URL(`/session/${sessionId}/message?limit=10`, baseUrl).toString());
-    if (!res.ok) return "unknown";
-    const msgs = (await res.json()) as Array<{
-      info: { role: string; modelID?: string; providerID?: string };
-    }>;
-    // Model info is on assistant messages (info.modelID + info.providerID)
-    const assistant = msgs.find(m => m.info.role === "assistant" && m.info.modelID);
-    if (!assistant?.info.modelID) return "unknown";
-    const { providerID, modelID } = assistant.info;
-    return providerID ? `${providerID}/${modelID}` : modelID!;
-  } catch {
-    return "unknown";
-  }
-}
 
 export function makeCmdStatusHandler(
   registry: SessionRegistry,
@@ -38,9 +22,13 @@ export function makeCmdStatusHandler(
 
     try {
       const health = await checkHealth(openCodeUrl);
-      const model = sessionId ? await fetchActiveModel(openCodeUrl, sessionId) : "unknown";
+      const resolved = await resolveDisplayModel(openCodeUrl, sessionId);
+      if (resolved.kind === "resolved") {
+        modelStr = resolved.ref;
+      } else {
+        modelStr = "not set — /model";
+      }
       healthStr = health.healthy ? "✅ healthy" : "⚠️ unhealthy";
-      modelStr = model;
       stateStr = isActive ? "active" : "idle";
     } catch {
       healthStr = "❌ unreachable";
