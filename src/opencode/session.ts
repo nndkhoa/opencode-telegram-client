@@ -26,3 +26,11 @@ export async function sendPromptAsync(
     throw new Error(`prompt_async failed: HTTP ${res.status}`);
   }
 }
+
+export async function abortSession(baseUrl: string, sessionId: string): Promise<void> {
+  const url = new URL(`/session/${sessionId}/abort`, baseUrl).toString();
+  const res = await fetch(url, { method: "POST" });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`abort failed: HTTP ${res.status}`);
+  }
+}

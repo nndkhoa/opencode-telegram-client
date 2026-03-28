@@ -4,7 +4,7 @@ import { renderFinalMessage } from "../rendering/markdown.js";
 
 const THROTTLE_MS = 500;
 
-type TurnState = {
+export type TurnState = {
   chatId: number;
   messageId: number;
   buffer: string;
@@ -52,6 +52,10 @@ export class StreamingStateManager {
       this.busy.set(turn.chatId, false);
       this.turns.delete(sessionId);
     }
+  }
+
+  getTurn(sessionId: string): TurnState | undefined {
+    return this.turns.get(sessionId);
   }
 
   async endAllTurnsWithError(api: Api, errorText: string): Promise<void> {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createSession, sendPromptAsync } from "./session.js";
+import { createSession, sendPromptAsync, abortSession } from "./session.js";
 
 describe("createSession", () => {
   beforeEach(() => {
@@ -73,5 +73,41 @@ describe("sendPromptAsync", () => {
     await expect(
       sendPromptAsync("http://localhost:4096", "ses_abc123", "Hello")
     ).resolves.toBeUndefined();
+  });
+});
+
+describe("abortSession", () => {
+  beforeEach(() => {
+    vi.stubGlobal("fetch", vi.fn());
+  });
+
+  it("POSTs to /session/:id/abort", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+    } as Response);
+
+    await abortSession("http://localhost:4096", "sess-abc");
+    expect(fetch).toHaveBeenCalledWith(
+      "http://localhost:4096/session/sess-abc/abort",
+      expect.objectContaining({ method: "POST" })
+    );
+  });
+
+  it("resolves on 200", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: true, status: 200 } as Response);
+    await expect(abortSession("http://localhost:4096", "sess-abc")).resolves.toBeUndefined();
+  });
+
+  it("resolves on 404 (session already gone)", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 404 } as Response);
+    await expect(abortSession("http://localhost:4096", "sess-abc")).resolves.toBeUndefined();
+  });
+
+  it("throws on non-ok, non-404 response (e.g. 500)", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, status: 500 } as Response);
+    await expect(abortSession("http://localhost:4096", "sess-abc")).rejects.toThrow(
+      "abort failed: HTTP 500"
+    );
   });
 });

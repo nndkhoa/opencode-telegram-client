@@ -18,14 +18,17 @@ describe("StreamingStateManager", () => {
     bot = makeMockBot();
   });
 
-  describe("session management", () => {
-    it("returns undefined for unknown chatId", () => {
-      expect(manager.getSession(123)).toBeUndefined();
+  describe("getTurn", () => {
+    it("returns TurnState for an active session", () => {
+      manager.startTurn("ses_abc", 123, 456);
+      const turn = manager.getTurn("ses_abc");
+      expect(turn).toBeDefined();
+      expect(turn?.chatId).toBe(123);
+      expect(turn?.messageId).toBe(456);
     });
 
-    it("stores and retrieves session for chatId", () => {
-      manager.setSession(123, "ses_abc");
-      expect(manager.getSession(123)).toBe("ses_abc");
+    it("returns undefined for a non-existent session", () => {
+      expect(manager.getTurn("missing")).toBeUndefined();
     });
   });
 
