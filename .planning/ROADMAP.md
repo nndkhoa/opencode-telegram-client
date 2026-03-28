@@ -50,7 +50,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Fix SSE event types (events.ts) + create test scaffolds (RED state)
+- [x] 02-01-PLAN.md — Fix SSE event types (events.ts) + create test scaffolds (RED state)
 - [ ] 02-02-PLAN.md — OpenCode session client + StreamingStateManager implementation
 - [ ] 02-03-PLAN.md — Message handler + bot/index.ts + main.ts wiring
 
@@ -110,7 +110,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
-| 2. Minimal Telegram Loop | 0/TBD | Not started | - |
+| 2. Minimal Telegram Loop | 1/3 | In Progress|  |
 | 3. Rendering Pipeline | 0/TBD | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |

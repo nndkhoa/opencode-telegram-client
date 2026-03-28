@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 2 context gathered
-last_updated: "2026-03-28T13:59:23.443Z"
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-28T14:29:16.798Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** Phase 01 — foundation
+**Current focus:** Phase 02 — minimal-telegram-loop
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 02 (minimal-telegram-loop) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P01 | 2 | 2 tasks | 8 files |
 | Phase 01-foundation P02 | 8 | 2 tasks | 5 files |
 | Phase 01-foundation P03 | 12 | 2 tasks | 5 files |
+| Phase 02-minimal-telegram-loop P01 | 8 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,7 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: openWhenHidden: true required in fetchEventSource for Node.js SSE (no browser Page Visibility API)
 - [Phase 01-foundation]: dmOnlyMiddleware runs BEFORE allowlistMiddleware — groups can't DoS allowlist check (D-04)
 - [Phase 01-foundation]: allowlistMiddleware is a factory function accepting Set<number> — enables test isolation without config import
+- [Phase 02-minimal-telegram-loop]: Live OpenCode 1.3.3 SSE events use properties-nested shape: { type, properties: { sessionID, ... } } — not top-level sessionID
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T13:59:23.440Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-minimal-telegram-loop/02-CONTEXT.md
+Last session: 2026-03-28T14:29:16.795Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
