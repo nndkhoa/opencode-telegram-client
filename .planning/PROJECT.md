@@ -16,11 +16,12 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 - [x] TypeScript project compiles with strict mode, env validation with Zod — Validated in Phase 01: Foundation
 - [x] OpenCode HTTP transport: health check + SSE event loop with backoff — Validated in Phase 01: Foundation
 
-### Active
+### Validated
 
-- [ ] Users can send messages to OpenCode and receive responses
-- [ ] Users can send messages to OpenCode and receive responses
-- [ ] Responses stream live (editing message as tokens arrive), then replaced with clean final output
+- [x] Users can send messages to OpenCode and receive live-streaming responses — Validated in Phase 02: Minimal Telegram Loop
+- [x] Responses stream live (editing message as tokens arrive ~500ms), then replaced with clean final output — Validated in Phase 02: Minimal Telegram Loop
+
+### Active
 - [ ] OpenCode markdown responses are converted to Telegram-compatible HTML using a proper conversion library
 - [ ] Each Telegram chat has a default session (auto-created on first message)
 - [ ] Users can create and switch named sessions (`/new <name>`, `/switch <name>`)
@@ -59,11 +60,12 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| TypeScript/Node.js | User preference, strong Telegram lib ecosystem | — Pending |
-| HTML parse mode for Telegram | OpenCode returns markdown; Telegram HTML is safer and more predictable than MarkdownV2 | — Pending |
-| Allowlist access control | Security — bot is a proxy to a local dev tool | — Pending |
-| Stream → clean final message | Best UX: shows progress, ends with readable output | — Pending |
-| Per-chat default session + named sessions | Covers both casual use and multi-project workflows | — Pending |
+| TypeScript/Node.js | User preference, strong Telegram lib ecosystem | Confirmed |
+| HTML parse mode for Telegram | OpenCode returns markdown; Telegram HTML is safer and more predictable than MarkdownV2 | Confirmed |
+| Allowlist access control | Security — bot is a proxy to a local dev tool | Confirmed |
+| Stream → clean final message | Best UX: shows progress, ends with readable output | Confirmed — working live |
+| Per-chat default session + named sessions | Covers both casual use and multi-project workflows | Pending (Phase 04) |
+| Native Node fetch for SSE | @microsoft/fetch-event-source is browser-only (references window) — replaced with built-in fetch + ReadableStream | Confirmed |
 
 ## Evolution
 
@@ -83,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 — Phase 01 (Foundation) complete*
+*Last updated: 2026-03-28 — Phase 02 (Minimal Telegram Loop) complete*
