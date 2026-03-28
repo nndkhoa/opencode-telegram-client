@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeMessageHandler } from "./message.js";
 import { StreamingStateManager } from "../../opencode/streaming-state.js";
+import type { SessionRegistry } from "../../session/registry.js";
 
 // Mock session module
 vi.mock("../../opencode/session.js", () => ({
@@ -8,7 +9,20 @@ vi.mock("../../opencode/session.js", () => ({
   sendPromptAsync: vi.fn(),
 }));
 
-import { createSession, sendPromptAsync } from "../../opencode/session.js";
+import { sendPromptAsync } from "../../opencode/session.js";
+
+function makeMockRegistry(sessionId = "ses_new123"): SessionRegistry {
+  return {
+    getActiveSessionId: vi.fn(),
+    getActiveName: vi.fn(),
+    getOrCreateDefault: vi.fn().mockResolvedValue(sessionId),
+    createNamed: vi.fn(),
+    switchTo: vi.fn(),
+    hasNamed: vi.fn(),
+    getNamedId: vi.fn(),
+    list: vi.fn(),
+  } as unknown as SessionRegistry;
+}
 
 function makeCtx(overrides: Partial<{
   chatId: number;
@@ -31,18 +45,19 @@ function makeCtx(overrides: Partial<{
 
 describe("makeMessageHandler", () => {
   let manager: StreamingStateManager;
+  let registry: SessionRegistry;
   const openCodeUrl = "http://localhost:4096";
 
   beforeEach(() => {
-    manager = new StreamingStateManager();
-    vi.mocked(createSession).mockResolvedValue("ses_new123");
+    registry = makeMockRegistry();
+    manager = new StreamingStateManager(registry);
     vi.mocked(sendPromptAsync).mockResolvedValue(undefined);
   });
 
   describe("MSG-02: typing action", () => {
     it("sends typing chat action before doing anything else", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
       expect(ctx.replyWithChatAction).toHaveBeenCalledWith("typing");
     });
@@ -50,11 +65,10 @@ describe("makeMessageHandler", () => {
 
   describe("D-08: concurrency guard", () => {
     it("rejects with ⏳ message if chatId is busy", async () => {
-      manager.setSession(100, "ses_existing");
       manager.startTurn("ses_existing", 100, 1);
 
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
 
       expect(ctx.reply).toHaveBeenCalledWith(
@@ -64,40 +78,32 @@ describe("makeMessageHandler", () => {
     });
   });
 
-  describe("D-01: session auto-creation", () => {
-    it("creates a new session if none exists for chatId", async () => {
+  describe("D-01: session auto-creation via registry", () => {
+    it("calls registry.getOrCreateDefault to get/create session", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
-      expect(createSession).toHaveBeenCalledWith(openCodeUrl);
-      expect(manager.getSession(100)).toBe("ses_new123");
+      expect(registry.getOrCreateDefault).toHaveBeenCalledWith(100, openCodeUrl);
     });
 
-    it("reuses existing session for chatId", async () => {
-      manager.setSession(100, "ses_existing");
+    it("replies with error if getOrCreateDefault throws", async () => {
+      vi.mocked(registry.getOrCreateDefault as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        new Error("ECONNREFUSED")
+      );
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
-      await handler(ctx as never);
-      expect(createSession).not.toHaveBeenCalled();
-      expect(manager.getSession(100)).toBe("ses_existing");
-    });
-  });
-
-  describe("MSG-07: error handling", () => {
-    it("replies with error if createSession throws (D-06)", async () => {
-      vi.mocked(createSession).mockRejectedValueOnce(new Error("ECONNREFUSED"));
-      const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
       expect(ctx.reply).toHaveBeenCalledWith(
         "❌ OpenCode is unreachable. Make sure it's running at localhost:4096."
       );
     });
+  });
 
+  describe("MSG-07: error handling", () => {
     it("edits thinking message with error if sendPromptAsync throws (D-06)", async () => {
       vi.mocked(sendPromptAsync).mockRejectedValueOnce(new Error("HTTP 503"));
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
       expect(ctx.api.editMessageText).toHaveBeenCalledWith(
         100,
@@ -110,14 +116,14 @@ describe("makeMessageHandler", () => {
   describe("MSG-01: prompt flow", () => {
     it("sends initial ⏳ Thinking... message", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
       expect(ctx.reply).toHaveBeenCalledWith("⏳ Thinking...");
     });
 
     it("calls sendPromptAsync with sessionId and user text", async () => {
       const ctx = makeCtx({ text: "What is 2+2?" });
-      const handler = makeMessageHandler(manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
       await handler(ctx as never);
       expect(sendPromptAsync).toHaveBeenCalledWith(
         openCodeUrl,

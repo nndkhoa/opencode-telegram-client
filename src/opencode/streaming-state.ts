@@ -1,6 +1,7 @@
 import type { Api } from "grammy";
 import type { OpenCodeEvent, MessagePartDeltaEvent, SessionIdleEvent } from "./events.js";
 import { renderFinalMessage } from "../rendering/markdown.js";
+import type { SessionRegistry } from "../session/registry.js";
 
 const THROTTLE_MS = 500;
 
@@ -19,18 +20,11 @@ function escapeHtml(text: string): string {
 }
 
 export class StreamingStateManager {
-  private sessions = new Map<number, string>();
   private busy = new Map<number, boolean>();
   // Exposed as non-private for test access via type assertion
   turns = new Map<string, TurnState>();
 
-  getSession(chatId: number): string | undefined {
-    return this.sessions.get(chatId);
-  }
-
-  setSession(chatId: number, sessionId: string): void {
-    this.sessions.set(chatId, sessionId);
-  }
+  constructor(private registry: SessionRegistry) {}
 
   isBusy(chatId: number): boolean {
     return this.busy.get(chatId) === true;

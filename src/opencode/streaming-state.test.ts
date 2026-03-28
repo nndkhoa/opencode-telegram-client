@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StreamingStateManager } from "./streaming-state.js";
 import type { Api } from "grammy";
+import type { SessionRegistry } from "../session/registry.js";
 
 function makeMockBot(): Api {
   return {
@@ -9,12 +10,27 @@ function makeMockBot(): Api {
   } as unknown as Api;
 }
 
+function makeMockRegistry(): SessionRegistry {
+  return {
+    getActiveSessionId: vi.fn(),
+    getActiveName: vi.fn(),
+    getOrCreateDefault: vi.fn(),
+    createNamed: vi.fn(),
+    switchTo: vi.fn(),
+    hasNamed: vi.fn(),
+    getNamedId: vi.fn(),
+    list: vi.fn(),
+  } as unknown as SessionRegistry;
+}
+
 describe("StreamingStateManager", () => {
   let manager: StreamingStateManager;
   let bot: Api;
+  let registry: SessionRegistry;
 
   beforeEach(() => {
-    manager = new StreamingStateManager();
+    registry = makeMockRegistry();
+    manager = new StreamingStateManager(registry);
     bot = makeMockBot();
   });
 
@@ -38,13 +54,11 @@ describe("StreamingStateManager", () => {
     });
 
     it("is busy after startTurn", () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
       expect(manager.isBusy(123)).toBe(true);
     });
 
     it("is not busy after endTurn", () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
       manager.endTurn("ses_abc");
       expect(manager.isBusy(123)).toBe(false);
@@ -53,7 +67,6 @@ describe("StreamingStateManager", () => {
 
   describe("handleEvent — message.part.delta", () => {
     it("appends delta to buffer", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       await manager.handleEvent(
@@ -82,7 +95,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("ignores non-text field deltas", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       await manager.handleEvent(
@@ -98,7 +110,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("throttles edits to 500ms intervals", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       // Two rapid deltas — only one edit should fire (throttle)
@@ -116,7 +127,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("HTML-escapes < > & in interim buffer display", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       // Force throttle open
@@ -137,7 +147,6 @@ describe("StreamingStateManager", () => {
 
   describe("handleEvent — session.idle", () => {
     it("sends final clean message without ⏳ prefix and ends turn", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       await manager.handleEvent(
@@ -158,7 +167,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("clears turn before sending final edit (prevents race with throttled edit)", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
@@ -168,7 +176,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("uses '(empty response)' if buffer is empty on session.idle", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
@@ -179,7 +186,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("sends subsequent chunks as new sendMessage calls when buffer splits", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       // Create a buffer that will produce 2+ chunks after conversion
@@ -201,7 +207,6 @@ describe("StreamingStateManager", () => {
     });
 
     it("falls back to plain text when Telegram rejects HTML parse_mode", async () => {
-      manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
       (manager as any).turns.get("ses_abc")!.buffer = "**bold**";
 

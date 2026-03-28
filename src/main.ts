@@ -5,6 +5,7 @@ import { checkHealth } from "./opencode/health.js";
 import { startSseLoop } from "./opencode/sse.js";
 import { createBot } from "./bot/index.js";
 import { StreamingStateManager } from "./opencode/streaming-state.js";
+import { SessionRegistry } from "./session/registry.js";
 
 async function main(): Promise<void> {
   logger.info("Starting OpenCode Telegram bot...");
@@ -12,11 +13,12 @@ async function main(): Promise<void> {
   // Step 1: Health check — fails fast if OpenCode unreachable
   await checkHealth(config.openCodeUrl);
 
-  // Step 2: Create shared streaming state manager (session registry + turn tracker)
-  const manager = new StreamingStateManager();
+  // Step 2: Create shared session registry + streaming state manager
+  const registry = new SessionRegistry();
+  const manager = new StreamingStateManager(registry);
 
-  // Step 3: Create bot with manager injected
-  const bot = createBot(manager);
+  // Step 3: Create bot with registry and manager injected
+  const bot = createBot(registry, manager);
 
   // Step 4: Start SSE loop in background — routes events to manager
   const ac = new AbortController();
