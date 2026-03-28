@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-session-commands 04-02-PLAN.md
-last_updated: "2026-03-28T16:36:15.923Z"
+stopped_at: Completed 04-session-commands 04-03-PLAN.md
+last_updated: "2026-03-28T16:41:30.000Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 04 (session-commands) — EXECUTING
-Plan: 3 of 4
-Status: Ready to execute
+Plan: 3 of 4 (COMPLETE)
+Status: Ready for Plan 4
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -93,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 04-session-commands]: switchTo('default') keyword recognized for switching back to default session by name
 - [Phase 04-session-commands]: StreamingStateManager.sessions Map removed — SessionRegistry owns all chat→session mapping
 - [Phase 04-session-commands]: abortSession resolves on 404 (session already gone is not an error)
+- [Phase 04-session-commands/04-03]: ctx.match used for command argument extraction — consistent with grammY pattern
+- [Phase 04-session-commands/04-03]: Input normalized to lowercase at handler level before registry calls
 
 ### Pending Todos
 
