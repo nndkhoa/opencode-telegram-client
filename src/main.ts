@@ -20,6 +20,17 @@ async function main(): Promise<void> {
   // Step 3: Create bot with registry and manager injected
   const bot = createBot(registry, manager);
 
+  // CMD-07: Register BotFather command menu
+  await bot.api.setMyCommands([
+    { command: "new", description: "Create and switch to a named session" },
+    { command: "switch", description: "Switch to an existing named session" },
+    { command: "sessions", description: "List all sessions for this chat" },
+    { command: "status", description: "Show active session and OpenCode health" },
+    { command: "cancel", description: "Abort the current in-progress request" },
+    { command: "help", description: "Show all commands" },
+  ]);
+  logger.info("BotFather command menu registered");
+
   // Step 4: Start SSE loop in background — routes events to manager
   const ac = new AbortController();
   const sseTask = startSseLoop({

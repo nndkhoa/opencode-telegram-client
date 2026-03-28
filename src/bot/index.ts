@@ -4,6 +4,12 @@ import { logger } from "../logger.js";
 import { dmOnlyMiddleware } from "./middleware/dm-only.js";
 import { allowlistMiddleware } from "./middleware/allowlist.js";
 import { makeMessageHandler } from "./handlers/message.js";
+import { makeCmdNewHandler } from "./handlers/cmd-new.js";
+import { makeCmdSwitchHandler } from "./handlers/cmd-switch.js";
+import { makeCmdSessionsHandler } from "./handlers/cmd-sessions.js";
+import { makeCmdStatusHandler } from "./handlers/cmd-status.js";
+import { makeCmdCancelHandler } from "./handlers/cmd-cancel.js";
+import { makeCmdHelpHandler } from "./handlers/cmd-help.js";
 import type { StreamingStateManager } from "../opencode/streaming-state.js";
 import type { SessionRegistry } from "../session/registry.js";
 
@@ -16,6 +22,14 @@ export function createBot(registry: SessionRegistry, manager: StreamingStateMana
 
   // Phase 2: real message handler (replaces Phase 1 echo)
   bot.on("message:text", makeMessageHandler(registry, manager, config.openCodeUrl));
+
+  // Phase 4: session command handlers
+  bot.command("new", makeCmdNewHandler(registry, config.openCodeUrl));
+  bot.command("switch", makeCmdSwitchHandler(registry));
+  bot.command("sessions", makeCmdSessionsHandler(registry));
+  bot.command("status", makeCmdStatusHandler(registry, manager, config.openCodeUrl));
+  bot.command("cancel", makeCmdCancelHandler(registry, manager, config.openCodeUrl));
+  bot.command("help", makeCmdHelpHandler());
 
   bot.catch((err) => {
     logger.error({ err }, "Unhandled bot error");
