@@ -47,7 +47,12 @@ Plans:
   2. A streaming message appears in Telegram and its text updates as tokens arrive (throttled ~500ms)
   3. When streaming ends, a final message replaces the interim draft
   4. If OpenCode is unreachable, the bot replies with a clear, actionable error message (not a crash)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Fix SSE event types (events.ts) + create test scaffolds (RED state)
+- [ ] 02-02-PLAN.md — OpenCode session client + StreamingStateManager implementation
+- [ ] 02-03-PLAN.md — Message handler + bot/index.ts + main.ts wiring
 
 ### Phase 3: Rendering Pipeline
 **Goal**: All bot output is properly formatted Telegram-safe HTML with no silent truncation
