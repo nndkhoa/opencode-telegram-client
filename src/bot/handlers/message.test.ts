@@ -9,7 +9,12 @@ vi.mock("../../opencode/session.js", () => ({
   sendPromptAsync: vi.fn(),
 }));
 
+vi.mock("../../persist/last-model.js", () => ({
+  ensurePersistedModelApplied: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { sendPromptAsync } from "../../opencode/session.js";
+import { ensurePersistedModelApplied } from "../../persist/last-model.js";
 
 function makeMockRegistry(sessionId = "ses_new123"): SessionRegistry {
   return {
@@ -130,6 +135,14 @@ describe("makeMessageHandler", () => {
         "ses_new123",
         "What is 2+2?"
       );
+    });
+
+    it("applies persisted model before sendPromptAsync", async () => {
+      const ctx = makeCtx();
+      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      await handler(ctx as never);
+      expect(ensurePersistedModelApplied).toHaveBeenCalledWith(openCodeUrl);
+      expect(ensurePersistedModelApplied).toHaveBeenCalledBefore(sendPromptAsync as never);
     });
   });
 });

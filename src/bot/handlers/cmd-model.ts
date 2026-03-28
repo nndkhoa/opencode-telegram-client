@@ -9,6 +9,7 @@ import {
 import { buildFlatSelectableModelRefs } from "../../opencode/model-catalog.js";
 import { resolveDisplayModel } from "../../opencode/display-model.js";
 import { logger } from "../../logger.js";
+import { savePersistedModel } from "../../persist/last-model.js";
 
 /** Leave headroom below Telegram's 4096 cap (entities / UTF-16 edge cases). */
 const TELEGRAM_HTML_SAFE_MAX = 3800;
@@ -171,6 +172,7 @@ export function makeCmdModelHandler(registry: SessionRegistry, openCodeUrl: stri
         const ref = flat[n - 1]!;
         try {
           await patchConfig(openCodeUrl, ref);
+          savePersistedModel(ref);
           logger.info({ model: ref }, "Model switched (numeric index)");
           await ctx.reply(`✅ Model switched to ${ref} (global — affects all sessions).`);
         } catch (err) {
@@ -186,6 +188,7 @@ export function makeCmdModelHandler(registry: SessionRegistry, openCodeUrl: stri
 
       try {
         await patchConfig(openCodeUrl, trimmed);
+        savePersistedModel(trimmed);
         logger.info({ model: trimmed }, "Model switched");
         await ctx.reply(`✅ Model switched to ${trimmed} (global — affects all sessions).`);
       } catch (err) {

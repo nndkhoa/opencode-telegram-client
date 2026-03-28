@@ -117,6 +117,12 @@ None yet.
 - OpenCode `question.asked` / `permission.asked` event schema needs validation against live payloads (Phase 5 risk)
 - `sendMessageDraft` (Bot API 9.3+) adoption vs `editMessageText` — verify grammY support before Phase 2
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260329-9i9 | Persist chosen model so first message after bot restart uses it when available | 2026-03-29 | — | [260329-9i9-persist-chosen-model-so-first-message-af](./quick/260329-9i9-persist-chosen-model-so-first-message-af/) |
+
 ## Session Continuity
 
 Last session: 2026-03-28T23:29:58.555Z

@@ -12,11 +12,17 @@ vi.mock("../../opencode/config.js", async (importOriginal) => {
   };
 });
 
+vi.mock("../../persist/last-model.js", () => ({
+  savePersistedModel: vi.fn(),
+}));
+
 import { patchConfig, getConfigProviders, getConfig } from "../../opencode/config.js";
+import { savePersistedModel } from "../../persist/last-model.js";
 
 const mockPatchConfig = vi.mocked(patchConfig);
 const mockGetConfigProviders = vi.mocked(getConfigProviders);
 const mockGetConfig = vi.mocked(getConfig);
+const mockSavePersistedModel = vi.mocked(savePersistedModel);
 
 function makeRegistry(sessionId: string | undefined = "sess-42") {
   return {
@@ -188,6 +194,7 @@ describe("makeCmdModelHandler — switch path", () => {
     const ctx = makeCtx("anthropic/claude-sonnet-4");
     await handler(ctx as any);
     expect(ctx.reply).toHaveBeenCalledWith("✅ Model switched to anthropic/claude-sonnet-4 (global — affects all sessions).");
+    expect(mockSavePersistedModel).toHaveBeenCalledWith("anthropic/claude-sonnet-4");
   });
 
   it("replies unknown model error on Error('unknown_model')", async () => {
@@ -196,6 +203,7 @@ describe("makeCmdModelHandler — switch path", () => {
     const ctx = makeCtx("bad/model");
     await handler(ctx as any);
     expect(ctx.reply).toHaveBeenCalledWith("❌ Unknown model \"bad/model\". Run /model to see available models.");
+    expect(mockSavePersistedModel).not.toHaveBeenCalled();
   });
 
   it("replies generic error on other thrown errors", async () => {
@@ -204,6 +212,7 @@ describe("makeCmdModelHandler — switch path", () => {
     const ctx = makeCtx("x/y");
     await handler(ctx as any);
     expect(ctx.reply).toHaveBeenCalledWith("❌ Could not switch model. Is OpenCode running?");
+    expect(mockSavePersistedModel).not.toHaveBeenCalled();
   });
 
   it("numeric arg selects nth flat ref and shows success with full ref", async () => {
@@ -213,6 +222,7 @@ describe("makeCmdModelHandler — switch path", () => {
     const ctx = makeCtx("2");
     await handler(ctx as any);
     expect(mockPatchConfig).toHaveBeenCalledWith("http://localhost:4096", secondFlatRef);
+    expect(mockSavePersistedModel).toHaveBeenCalledWith(secondFlatRef);
     expect(ctx.reply).toHaveBeenCalledWith(
       `✅ Model switched to ${secondFlatRef} (global — affects all sessions).`
     );

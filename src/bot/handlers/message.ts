@@ -1,5 +1,6 @@
 import type { Context } from "grammy";
 import { logger } from "../../logger.js";
+import { ensurePersistedModelApplied } from "../../persist/last-model.js";
 import { sendPromptAsync } from "../../opencode/session.js";
 import type { StreamingStateManager } from "../../opencode/streaming-state.js";
 import type { SessionRegistry } from "../../session/registry.js";
@@ -44,6 +45,7 @@ export function makeMessageHandler(
 
     // D-06: fire prompt_async — returns 204 immediately; all output arrives via SSE
     try {
+      await ensurePersistedModelApplied(openCodeUrl);
       await sendPromptAsync(openCodeUrl, sessionId, text);
       logger.info({ chatId, sessionId }, "Prompt sent to OpenCode");
     } catch (err) {
