@@ -5,6 +5,7 @@ import type { Api } from "grammy";
 function makeMockBot(): Api {
   return {
     editMessageText: vi.fn().mockResolvedValue({}),
+    sendMessage: vi.fn().mockResolvedValue({}),
   } as unknown as Api;
 }
 
@@ -48,15 +49,15 @@ describe("StreamingStateManager", () => {
   });
 
   describe("handleEvent — message.part.delta", () => {
-    it("appends delta to buffer", () => {
+    it("appends delta to buffer", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "text", delta: "Hello " } },
         bot
       );
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p2", field: "text", delta: "world" } },
         bot
       );
@@ -65,7 +66,7 @@ describe("StreamingStateManager", () => {
       const turn = (manager as unknown as { turns: Map<string, { lastEditAt: number }> }).turns.get("ses_abc");
       if (turn) turn.lastEditAt = 0;
 
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p3", field: "text", delta: "!" } },
         bot
       );
@@ -77,11 +78,11 @@ describe("StreamingStateManager", () => {
       );
     });
 
-    it("ignores non-text field deltas", () => {
+    it("ignores non-text field deltas", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "thinking", delta: "internal thought" } },
         bot
       );
@@ -93,16 +94,16 @@ describe("StreamingStateManager", () => {
       expect(bot.editMessageText).not.toHaveBeenCalled();
     });
 
-    it("throttles edits to 500ms intervals", () => {
+    it("throttles edits to 500ms intervals", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
       // Two rapid deltas — only one edit should fire (throttle)
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "text", delta: "A" } },
         bot
       );
-      manager.handleEvent(
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p2", field: "text", delta: "B" } },
         bot
       );
@@ -110,43 +111,109 @@ describe("StreamingStateManager", () => {
       // editMessageText should be called at most once (first delta triggers, second is throttled)
       expect(vi.mocked(bot.editMessageText).mock.calls.length).toBeLessThanOrEqual(1);
     });
-  });
 
-  describe("handleEvent — session.idle", () => {
-    it("sends final clean message without ⏳ prefix and ends turn", () => {
+    it("HTML-escapes < > & in interim buffer display", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
-      manager.handleEvent(
+      // Force throttle open
+      const turn = (manager as any).turns.get("ses_abc")!;
+      turn.lastEditAt = 0;
+
+      await manager.handleEvent(
+        { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "text", delta: "<b>hello</b> & world" } },
+        bot
+      );
+
+      expect(bot.editMessageText).toHaveBeenCalledWith(
+        123, 456,
+        "⏳ Thinking...\n\n&lt;b&gt;hello&lt;/b&gt; &amp; world"
+      );
+    });
+  });
+
+  describe("handleEvent — session.idle", () => {
+    it("sends final clean message without ⏳ prefix and ends turn", async () => {
+      manager.setSession(123, "ses_abc");
+      manager.startTurn("ses_abc", 123, 456);
+
+      await manager.handleEvent(
         { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "text", delta: "Final answer" } },
         bot
       );
 
       vi.mocked(bot.editMessageText).mockClear();
 
-      manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
 
-      expect(bot.editMessageText).toHaveBeenCalledWith(123, 456, "Final answer");
+      expect(bot.editMessageText).toHaveBeenCalledWith(
+        123, 456,
+        expect.stringContaining("Final answer"),
+        { parse_mode: "HTML" }
+      );
       expect(manager.isBusy(123)).toBe(false);
     });
 
-    it("clears turn before sending final edit (prevents race with throttled edit)", () => {
+    it("clears turn before sending final edit (prevents race with throttled edit)", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
-      manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
 
       // After endTurn, isBusy must be false before editMessageText resolves
       expect(manager.isBusy(123)).toBe(false);
     });
 
-    it("uses '(empty response)' if buffer is empty on session.idle", () => {
+    it("uses '(empty response)' if buffer is empty on session.idle", async () => {
       manager.setSession(123, "ses_abc");
       manager.startTurn("ses_abc", 123, 456);
 
-      manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
 
-      expect(bot.editMessageText).toHaveBeenCalledWith(123, 456, "(empty response)");
+      expect(bot.editMessageText).toHaveBeenCalledWith(
+        123, 456, "(empty response)", { parse_mode: "HTML" }
+      );
+    });
+
+    it("sends subsequent chunks as new sendMessage calls when buffer splits", async () => {
+      manager.setSession(123, "ses_abc");
+      manager.startTurn("ses_abc", 123, 456);
+
+      // Create a buffer that will produce 2+ chunks after conversion
+      const chunk1 = "a".repeat(4090);
+      const chunk2 = "b".repeat(100);
+      const bigBuffer = `${chunk1}\n${chunk2}`;
+
+      (manager as any).turns.get("ses_abc")!.buffer = bigBuffer;
+      vi.mocked(bot.editMessageText).mockClear();
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+
+      expect(bot.editMessageText).toHaveBeenCalledWith(
+        123, 456, expect.any(String), { parse_mode: "HTML" }
+      );
+      expect(bot.sendMessage).toHaveBeenCalledWith(
+        123, expect.any(String), { parse_mode: "HTML" }
+      );
+    });
+
+    it("falls back to plain text when Telegram rejects HTML parse_mode", async () => {
+      manager.setSession(123, "ses_abc");
+      manager.startTurn("ses_abc", 123, 456);
+      (manager as any).turns.get("ses_abc")!.buffer = "**bold**";
+
+      // First call (HTML) rejects, second call (fallback) should succeed
+      vi.mocked(bot.editMessageText)
+        .mockRejectedValueOnce(new Error("Bad Request: can't parse entities"))
+        .mockResolvedValueOnce({} as any);
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+
+      // Called twice: first with parse_mode: "HTML", then fallback without
+      expect(bot.editMessageText).toHaveBeenCalledTimes(2);
+      const secondCall = vi.mocked(bot.editMessageText).mock.calls[1];
+      // Second call has no parse_mode option (or undefined)
+      expect(secondCall[3]).toBeUndefined();
     });
   });
 });
