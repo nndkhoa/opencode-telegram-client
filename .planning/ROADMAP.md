@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - TypeScript project + OpenCode client + shared SSE connection (completed 2026-03-28)
 - [x] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message (completed 2026-03-28)
-- [ ] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message
+- [x] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message (completed 2026-03-28)
 - [ ] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help)
 - [ ] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events
 - [ ] **Phase 6: Power Features** - File uploads, model switching, context clear, structured pino logging, README
@@ -66,7 +66,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — TDD: renderFinalMessage module (markdown→HTML, split ≤4096, sanitize tags)
-- [ ] 03-02-PLAN.md — Wire rendering into streaming-state.ts (HTML interim escaping, multi-chunk send, D-08 fallback)
+- [x] 03-02-PLAN.md — Wire rendering into streaming-state.ts (HTML interim escaping, multi-chunk send, D-08 fallback)
 
 ### Phase 4: Session Commands
 **Goal**: Users can manage named sessions and control the bot via the full command set
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
-| 3. Rendering Pipeline | 1/2 | In Progress|  |
+| 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 0/TBD | Not started | - |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |

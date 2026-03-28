@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 03-rendering-pipeline-01-PLAN.md
-last_updated: "2026-03-28T15:28:16.881Z"
+status: verifying
+stopped_at: Completed 03-rendering-pipeline-02-PLAN.md
+last_updated: "2026-03-28T15:31:06.089Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 Phase: 03 (rendering-pipeline) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-minimal-telegram-loop P02 | 8 | 2 tasks | 2 files |
 | Phase 02-minimal-telegram-loop P03 | 10 | 2 tasks | 6 files |
 | Phase 03-rendering-pipeline P01 | 3 | 2 tasks | 2 files |
+| Phase 03-rendering-pipeline P02 | 5 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - [Phase 02-minimal-telegram-loop]: endAllTurnsWithError added to StreamingStateManager + onError in SseOptions for D-07 SSE disconnect handling
 - [Phase 03-rendering-pipeline]: marked + sanitize-html pipeline: convert markdown→HTML then sanitize to Telegram-allowed tags (b/i/u/s/code/pre/a)
 - [Phase 03-rendering-pipeline]: Post-conversion HTML split: newline-aware 200-char lookback before hard 4096 limit
+- [Phase 03-rendering-pipeline]: handleEvent changed from void to async (Promise<void>) to support await on session.idle sends
+- [Phase 03-rendering-pipeline]: escapeHtml applied to interim buffer only — no parse_mode on interim edits (safety without HTML rendering)
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T15:28:16.878Z
-Stopped at: Completed 03-rendering-pipeline-01-PLAN.md
+Last session: 2026-03-28T15:31:06.086Z
+Stopped at: Completed 03-rendering-pipeline-02-PLAN.md
 Resume file: None
