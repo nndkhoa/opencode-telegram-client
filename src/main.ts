@@ -18,7 +18,8 @@ async function main(): Promise<void> {
     signal: ac.signal,
     onEvent: (event) => {
       // Phase 1: log all events; Phase 2+ will route by sessionID
-      logger.debug({ eventType: event.type, sessionID: event.sessionID }, "OpenCode event");
+      const props = "properties" in event ? event.properties : undefined;
+      logger.debug({ eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID }, "OpenCode event");
     },
   });
 

@@ -40,7 +40,8 @@ export async function startSseLoop(opts: SseOptions): Promise<void> {
           if (!ev.data) return;
           const event = parseEvent(ev.data);
           if (event) {
-            logger.debug({ eventType: event.type, sessionID: event.sessionID }, "SSE event received");
+            const props = "properties" in event ? event.properties : undefined;
+            logger.debug({ eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID }, "SSE event received");
             onEvent?.(event);
           }
         },

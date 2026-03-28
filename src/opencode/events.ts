@@ -1,15 +1,25 @@
-export type BaseEvent = {
-  type: string;
-  sessionID?: string;
+export type MessagePartDeltaEvent = {
+  type: "message.part.delta";
+  properties: {
+    sessionID: string;
+    messageID: string;
+    partID: string;
+    field: string;
+    delta: string;
+  };
 };
 
-// Known event types encountered in Phase 1 (extend in later phases)
+export type SessionIdleEvent = {
+  type: "session.idle";
+  properties: {
+    sessionID: string;
+  };
+};
+
 export type OpenCodeEvent =
-  | { type: "session.created"; sessionID: string; [key: string]: unknown }
-  | { type: "session.deleted"; sessionID: string; [key: string]: unknown }
-  | { type: "part.delta"; sessionID: string; [key: string]: unknown }
-  | { type: "part.updated"; sessionID: string; [key: string]: unknown }
-  | { type: string; sessionID?: string; [key: string]: unknown }; // catch-all
+  | MessagePartDeltaEvent
+  | SessionIdleEvent
+  | { type: string; properties?: Record<string, unknown> };
 
 export function parseEvent(raw: string): OpenCodeEvent | null {
   try {
