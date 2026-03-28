@@ -31,7 +31,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The shared SSE connection to `GET /event` establishes and incoming events are visible in logs
   4. A message from a non-allowlisted Telegram user ID is silently rejected before any OpenCode call
   5. A message from an allowlisted user ID is accepted and reaches the next handler
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Project scaffold: package.json, tsconfig, vitest, env config module
+- [ ] 01-02-PLAN.md — OpenCode client: health check + shared SSE loop with exponential backoff
+- [ ] 01-03-PLAN.md — grammY bot: DM-only gate + allowlist middleware + main.ts bootstrap
 
 ### Phase 2: Minimal Telegram Loop
 **Goal**: An allowlisted user can send a text message and see a live-streaming response in Telegram
@@ -99,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/3 | Not started | - |
 | 2. Minimal Telegram Loop | 0/TBD | Not started | - |
 | 3. Rendering Pipeline | 0/TBD | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |
