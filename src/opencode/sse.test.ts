@@ -1,33 +1,77 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-// Mock the fetchEventSource module before importing sse.ts
-vi.mock("@microsoft/fetch-event-source", () => ({
-  fetchEventSource: vi.fn(),
-}));
-
-import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { startSseLoop } from "./sse.js";
 
-const mockFetch = fetchEventSource as ReturnType<typeof vi.fn>;
+function makeStream(chunks: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder();
+  let i = 0;
+  return new ReadableStream({
+    async pull(controller) {
+      if (i < chunks.length) {
+        controller.enqueue(encoder.encode(chunks[i++]));
+      } else {
+        controller.close();
+      }
+    },
+  });
+}
 
-describe("backoffDelay (internal logic)", () => {
+function makeHangingStream(signal: AbortSignal): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    start(controller) {
+      signal.addEventListener("abort", () => controller.close(), { once: true });
+    },
+  });
+}
+
+describe("startSseLoop", () => {
   beforeEach(() => {
-    mockFetch.mockReset();
+    vi.stubGlobal("fetch", vi.fn());
   });
 
-  it("reconnects after stream error (attempt increment observable via log)", async () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("delivers parsed event to onEvent callback", async () => {
+    const onEvent = vi.fn();
+    const ac = new AbortController();
+
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(makeStream(['data: {"type":"message.part.delta","properties":{"sessionID":"s1","contentID":"c1","part":{"type":"text","text":"hello"}}}\n\n']), {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
+      }),
+    );
+
+    startSseLoop({ baseUrl: "http://localhost:4096", signal: ac.signal, onEvent });
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(onEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "message.part.delta" }),
+    );
+    ac.abort();
+  });
+
+  it("reconnects after stream error (attempt increment observable)", async () => {
     let callCount = 0;
     const ac = new AbortController();
-    mockFetch.mockImplementation(async (_url: string, opts: { onopen: Function; onerror: Function; signal: AbortSignal }) => {
+
+    vi.mocked(fetch).mockImplementation(async () => {
       callCount++;
       if (callCount === 1) {
-        // First call: simulate error after open
-        await opts.onopen({ ok: true, status: 200 });
-        throw new Error("simulated disconnect");
+        return new Response(
+          new ReadableStream({
+            start(controller) {
+              controller.error(new Error("simulated disconnect"));
+            },
+          }),
+          { status: 200, headers: { "content-type": "text/event-stream" } },
+        );
       }
-      // Second call: wait until aborted so the test can check callCount
-      return new Promise<void>((resolve) => {
-        opts.signal?.addEventListener("abort", () => resolve(), { once: true });
+      // Second call: hang until aborted
+      return new Response(makeHangingStream(ac.signal), {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
       });
     });
 
@@ -37,7 +81,7 @@ describe("backoffDelay (internal logic)", () => {
       onEvent: vi.fn(),
     });
 
-    // Wait for reconnect attempt (backoff ~1000ms base)
+    // Wait longer than the ~1000ms base backoff
     await new Promise((r) => setTimeout(r, 1200));
     expect(callCount).toBeGreaterThanOrEqual(2);
 
@@ -45,32 +89,15 @@ describe("backoffDelay (internal logic)", () => {
     await loopPromise.catch(() => {});
   }, 10000);
 
-  it("delivers parsed event to onEvent callback", async () => {
-    const onEvent = vi.fn();
-    mockFetch.mockImplementation(async (_url: string, opts: { onopen: Function; onmessage: Function }) => {
-      await opts.onopen({ ok: true, status: 200 });
-      opts.onmessage({ data: '{"type":"part.delta","sessionID":"session-1"}', id: "", event: "" });
-      return new Promise(() => {}); // hang
-    });
-
-    const ac = new AbortController();
-    startSseLoop({ baseUrl: "http://localhost:4096", signal: ac.signal, onEvent });
-
-    await new Promise((r) => setTimeout(r, 50));
-    expect(onEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ type: "part.delta", sessionID: "session-1" })
-    );
-    ac.abort();
-  });
-
   it("stops the loop when signal is aborted", async () => {
     let callCount = 0;
     const ac = new AbortController();
-    mockFetch.mockImplementation(async (_url: string, opts: { signal: AbortSignal }) => {
+
+    vi.mocked(fetch).mockImplementation(async () => {
       callCount++;
-      // Resolve when the signal is aborted so fetchEventSource doesn't hang
-      return new Promise<void>((resolve) => {
-        opts.signal?.addEventListener("abort", () => resolve(), { once: true });
+      return new Response(makeHangingStream(ac.signal), {
+        status: 200,
+        headers: { "content-type": "text/event-stream" },
       });
     });
 
@@ -83,7 +110,6 @@ describe("backoffDelay (internal logic)", () => {
     ac.abort();
     await loopPromise.catch(() => {});
 
-    // Should have only attempted once — abort before reconnect
     expect(callCount).toBe(1);
   });
 });

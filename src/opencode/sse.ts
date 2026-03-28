@@ -1,4 +1,3 @@
-import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { logger } from "../logger.js";
 import { parseEvent, type OpenCodeEvent } from "./events.js";
 
@@ -19,6 +18,44 @@ function backoffDelay(attempt: number): number {
   return Math.max(0, Math.round(base + jitter));
 }
 
+async function readSseStream(
+  res: Response,
+  signal: AbortSignal,
+  onEvent: ((event: OpenCodeEvent) => void) | undefined,
+): Promise<void> {
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+
+  try {
+    while (!signal.aborted) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+
+      const lines = buf.split("\n");
+      buf = lines.pop() ?? "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const data = line.slice(5).trim();
+        if (!data) continue;
+        const event = parseEvent(data);
+        if (event) {
+          const props = "properties" in event ? event.properties : undefined;
+          logger.debug(
+            { eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID },
+            "SSE event received",
+          );
+          onEvent?.(event);
+        }
+      }
+    }
+  } finally {
+    reader.cancel().catch(() => {});
+  }
+}
+
 export async function startSseLoop(opts: SseOptions): Promise<void> {
   const { baseUrl, signal, onEvent, onError } = opts;
   const url = new URL("/event", baseUrl).toString();
@@ -27,34 +64,24 @@ export async function startSseLoop(opts: SseOptions): Promise<void> {
   while (!signal.aborted) {
     try {
       logger.info({ url, attempt }, "SSE connecting");
-      await fetchEventSource(url, {
+      const res = await fetch(url, {
         signal,
-        openWhenHidden: true,
-        async onopen(res) {
-          if (!res.ok) {
-            throw new Error(`SSE open failed: HTTP ${res.status}`);
-          }
-          attempt = 0; // reset backoff on successful connect
-          logger.info({ url }, "SSE connected");
-        },
-        onmessage(ev) {
-          if (!ev.data) return;
-          const event = parseEvent(ev.data);
-          if (event) {
-            const props = "properties" in event ? event.properties : undefined;
-            logger.debug({ eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID }, "SSE event received");
-            onEvent?.(event);
-          }
-        },
-        onclose() {
-          logger.warn({ url }, "SSE connection closed by server");
-        },
-        onerror(err) {
-          logger.error({ err, url }, "SSE error");
-          // throw to break out of fetchEventSource's internal retry and let our outer loop handle it
-          throw err;
-        },
+        headers: { Accept: "text/event-stream" },
       });
+
+      if (!res.ok) {
+        throw new Error(`SSE open failed: HTTP ${res.status}`);
+      }
+      if (!res.body) {
+        throw new Error("SSE response has no body");
+      }
+
+      attempt = 0;
+      logger.info({ url }, "SSE connected");
+      await readSseStream(res, signal, onEvent);
+      if (!signal.aborted) {
+        logger.warn({ url }, "SSE connection closed by server");
+      }
     } catch (err) {
       if (signal.aborted) break;
       if (onError) {
