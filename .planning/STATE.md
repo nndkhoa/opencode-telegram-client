@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-03-28T14:29:16.798Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-03-28T14:33:01.951Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 02 (minimal-telegram-loop) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-03-28
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P02 | 8 | 2 tasks | 5 files |
 | Phase 01-foundation P03 | 12 | 2 tasks | 5 files |
 | Phase 02-minimal-telegram-loop P01 | 8 | 2 tasks | 6 files |
+| Phase 02-minimal-telegram-loop P02 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: dmOnlyMiddleware runs BEFORE allowlistMiddleware — groups can't DoS allowlist check (D-04)
 - [Phase 01-foundation]: allowlistMiddleware is a factory function accepting Set<number> — enables test isolation without config import
 - [Phase 02-minimal-telegram-loop]: Live OpenCode 1.3.3 SSE events use properties-nested shape: { type, properties: { sessionID, ... } } — not top-level sessionID
+- [Phase 02-minimal-telegram-loop]: Cast to specific union member after type check in streaming-state.ts — OpenCodeEvent catch-all prevents TypeScript discriminated union narrowing
+- [Phase 02-minimal-telegram-loop]: endTurn called before editMessageText on session.idle to prevent race with throttled edits
 
 ### Pending Todos
 
@@ -87,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T14:29:16.795Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-03-28T14:33:01.948Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
