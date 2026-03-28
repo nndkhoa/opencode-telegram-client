@@ -7,8 +7,8 @@
 
 ### Access Control
 
-- [ ] **ACC-01**: Bot rejects messages from users not in the allowlist (checked by numeric Telegram user ID)
-- [ ] **ACC-02**: Bot rejects callback queries (inline keyboard interactions) from users not in the allowlist
+- [x] **ACC-01**: Bot rejects messages from users not in the allowlist (checked by numeric Telegram user ID)
+- [x] **ACC-02**: Bot rejects callback queries (inline keyboard interactions) from users not in the allowlist
 - [x] **ACC-03**: Allowlist is configured via environment variable (comma-separated user IDs)
 
 ### Messaging
@@ -98,8 +98,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ACC-01 | Phase 1 | Pending |
-| ACC-02 | Phase 1 | Pending |
+| ACC-01 | Phase 1 | Complete |
+| ACC-02 | Phase 1 | Complete |
 | ACC-03 | Phase 1 | Complete |
 | INFRA-01 | Phase 1 | Complete |
 | INFRA-02 | Phase 1 | Complete |

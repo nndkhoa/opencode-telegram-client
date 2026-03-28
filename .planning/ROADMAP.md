@@ -12,7 +12,7 @@ Six phases deliver a fully functional Telegram bot that proxies OpenCode session
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - TypeScript project + OpenCode client + shared SSE connection
+- [x] **Phase 1: Foundation** - TypeScript project + OpenCode client + shared SSE connection (completed 2026-03-28)
 - [ ] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message
 - [ ] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message
 - [ ] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help)
@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01-PLAN.md — Project scaffold: package.json, tsconfig, vitest, env config module
 - [x] 01-02-PLAN.md — OpenCode client: health check + shared SSE loop with exponential backoff
-- [ ] 01-03-PLAN.md — grammY bot: DM-only gate + allowlist middleware + main.ts bootstrap
+- [x] 01-03-PLAN.md — grammY bot: DM-only gate + allowlist middleware + main.ts bootstrap
 
 ### Phase 2: Minimal Telegram Loop
 **Goal**: An allowlisted user can send a text message and see a live-streaming response in Telegram
@@ -104,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 2/3 | In Progress|  |
+| 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 0/TBD | Not started | - |
 | 3. Rendering Pipeline | 0/TBD | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |
