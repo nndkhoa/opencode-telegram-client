@@ -62,7 +62,11 @@ Plans:
   1. OpenCode markdown output (code blocks, bold, italics, links) renders correctly in Telegram using HTML parse_mode
   2. A response exceeding 4096 characters is automatically split into multiple messages (none truncated)
   3. Partially received streamed text never causes a "can't parse entities" Telegram API error
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — TDD: renderFinalMessage module (markdown→HTML, split ≤4096, sanitize tags)
+- [ ] 03-02-PLAN.md — Wire rendering into streaming-state.ts (HTML interim escaping, multi-chunk send, D-08 fallback)
 
 ### Phase 4: Session Commands
 **Goal**: Users can manage named sessions and control the bot via the full command set
@@ -111,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
-| 3. Rendering Pipeline | 0/TBD | Not started | - |
+| 3. Rendering Pipeline | 0/2 | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |
