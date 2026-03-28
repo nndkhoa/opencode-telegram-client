@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 04.1-01-PLAN.md
-last_updated: "2026-03-28T17:43:47.268Z"
+stopped_at: Phase 04.2 context gathered
+last_updated: "2026-03-28T23:29:58.559Z"
 last_activity: 2026-03-28
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 5
   total_plans: 13
   completed_plans: 13
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 ### Roadmap Evolution
 
 - Phase 04.1 inserted after Phase 4: model switching, context clear (URGENT)
+- Phase 04.2 inserted after Phase 4: fix unknown model at beginning; propose new way to change model (URGENT)
 
 ### Decisions
 
@@ -118,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T17:41:10.517Z
-Stopped at: Completed 04.1-01-PLAN.md
-Resume file: None
+Last session: 2026-03-28T23:29:58.555Z
+Stopped at: Phase 04.2 context gathered
+Resume file: .planning/phases/04.2-fix-unknown-model-at-beginning-propose-new-way-to-change-model/04.2-CONTEXT.md
