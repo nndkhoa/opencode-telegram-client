@@ -38,12 +38,12 @@ created: 2026-03-28
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 2-01-01 | 01 | 1 | MSG-01 | unit | `npx vitest run src/opencode/client.test.ts` | ❌ W0 | ⬜ pending |
-| 2-01-02 | 01 | 1 | MSG-01 | unit | `npx vitest run src/opencode/client.test.ts` | ❌ W0 | ⬜ pending |
-| 2-01-03 | 01 | 1 | MSG-02 | unit | `npx vitest run src/opencode/streamer.test.ts` | ❌ W0 | ⬜ pending |
-| 2-02-01 | 02 | 2 | MSG-03 | unit | `npx vitest run src/bot/handler.test.ts` | ❌ W0 | ⬜ pending |
-| 2-02-02 | 02 | 2 | MSG-04 | unit | `npx vitest run src/bot/handler.test.ts` | ❌ W0 | ⬜ pending |
-| 2-02-03 | 02 | 2 | MSG-07 | unit | `npx vitest run src/bot/handler.test.ts` | ❌ W0 | ⬜ pending |
+| 2-01-01 | 01 | 1 | MSG-01 | unit | `npx vitest run src/opencode/session.test.ts` | ❌ W0 | ⬜ pending |
+| 2-01-02 | 01 | 1 | MSG-01 | unit | `npx vitest run src/opencode/session.test.ts` | ❌ W0 | ⬜ pending |
+| 2-01-03 | 01 | 1 | MSG-02 | unit | `npx vitest run src/opencode/streaming-state.test.ts` | ❌ W0 | ⬜ pending |
+| 2-02-01 | 02 | 2 | MSG-03 | unit | `npx vitest run src/bot/handlers/message.test.ts` | ❌ W0 | ⬜ pending |
+| 2-02-02 | 02 | 2 | MSG-04 | unit | `npx vitest run src/bot/handlers/message.test.ts` | ❌ W0 | ⬜ pending |
+| 2-02-03 | 02 | 2 | MSG-07 | unit | `npx vitest run src/bot/handlers/message.test.ts` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +51,9 @@ created: 2026-03-28
 
 ## Wave 0 Requirements
 
-- [ ] `src/opencode/client.test.ts` — stubs for MSG-01 (session creation, prompt dispatch)
-- [ ] `src/opencode/streamer.test.ts` — stubs for MSG-02 (SSE streaming, delta assembly)
-- [ ] `src/bot/handler.test.ts` — stubs for MSG-03, MSG-04, MSG-07 (message handling, typing action, error handling)
+- [ ] `src/opencode/session.test.ts` — stubs for MSG-01 (session creation, prompt dispatch)
+- [ ] `src/opencode/streaming-state.test.ts` — stubs for MSG-02 (SSE streaming, delta assembly)
+- [ ] `src/bot/handlers/message.test.ts` — stubs for MSG-03, MSG-04, MSG-07 (message handling, typing action, error handling)
 
 *Existing vitest infrastructure covers framework — only test stub files need creation.*
 
