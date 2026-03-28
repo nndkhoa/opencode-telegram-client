@@ -95,7 +95,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 04.1-01-PLAN.md — OpenCode config API client + /model command handler + bot wiring
+- [x] 04.1-01-PLAN.md — OpenCode config API client + /model command handler + bot wiring
 
 ### Phase 5: MCP Questions & Permissions
 **Goal**: OpenCode MCP questions and permission prompts are surfaced interactively in Telegram

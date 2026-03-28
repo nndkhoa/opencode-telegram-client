@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 4.1 context gathered
-last_updated: "2026-03-28T17:23:56.152Z"
+status: verifying
+stopped_at: Completed 04.1-01-PLAN.md
+last_updated: "2026-03-28T17:41:10.520Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 7
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 5
+  total_plans: 13
+  completed_plans: 13
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** Phase 04 — session-commands
+**Current focus:** Phase 04.1 — model-switching-context-clear
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Ready to execute
+Phase: 04.1 (model-switching-context-clear) — EXECUTING
+Plan: 1 of 1
+Status: Phase complete — ready for verification
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-session-commands P01 | 15 | 2 tasks | 2 files |
 | Phase 04-session-commands P02 | 12 | 2 tasks | 8 files |
 | Phase 04-session-commands P04 | 15 | 2 tasks | 8 files |
+| Phase 04.1-model-switching-context-clear P01 | 7 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,7 @@ Recent decisions affecting current work:
 - [Phase 04-session-commands/04-04]: abortSession failure in cancel handler is non-fatal — cleanup proceeds regardless
 - [Phase 04-session-commands/04-04]: setMyCommands called in main.ts before bot.start() for one-time BotFather menu registration
 - [Phase 04-session-commands/04-04]: JS default param footgun: passing undefined explicitly triggers default — use null as no-value sentinel in vi.fn test helpers
+- [Phase 04.1-model-switching-context-clear]: /model arg is NOT lowercased — model IDs are case-sensitive
 
 ### Pending Todos
 
@@ -116,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T17:23:56.149Z
-Stopped at: Phase 4.1 context gathered
-Resume file: .planning/phases/04.1-model-switching-context-clear/04.1-CONTEXT.md
+Last session: 2026-03-28T17:41:10.517Z
+Stopped at: Completed 04.1-01-PLAN.md
+Resume file: None
