@@ -12,11 +12,13 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Only allowlisted Telegram user IDs can interact with the bot — Validated in Phase 01: Foundation
+- [x] TypeScript project compiles with strict mode, env validation with Zod — Validated in Phase 01: Foundation
+- [x] OpenCode HTTP transport: health check + SSE event loop with backoff — Validated in Phase 01: Foundation
 
 ### Active
 
-- [ ] Only allowlisted Telegram user IDs can interact with the bot
+- [ ] Users can send messages to OpenCode and receive responses
 - [ ] Users can send messages to OpenCode and receive responses
 - [ ] Responses stream live (editing message as tokens arrive), then replaced with clean final output
 - [ ] OpenCode markdown responses are converted to Telegram-compatible HTML using a proper conversion library
@@ -81,4 +83,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 after initialization*
+*Last updated: 2026-03-28 — Phase 01 (Foundation) complete*
