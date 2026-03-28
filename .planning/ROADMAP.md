@@ -13,7 +13,7 @@ Six phases deliver a fully functional Telegram bot that proxies OpenCode session
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation** - TypeScript project + OpenCode client + shared SSE connection (completed 2026-03-28)
-- [ ] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message
+- [x] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message (completed 2026-03-28)
 - [ ] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message
 - [ ] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help)
 - [ ] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events
@@ -52,7 +52,7 @@ Plans:
 Plans:
 - [x] 02-01-PLAN.md — Fix SSE event types (events.ts) + create test scaffolds (RED state)
 - [x] 02-02-PLAN.md — OpenCode session client + StreamingStateManager implementation
-- [ ] 02-03-PLAN.md — Message handler + bot/index.ts + main.ts wiring
+- [x] 02-03-PLAN.md — Message handler + bot/index.ts + main.ts wiring
 
 ### Phase 3: Rendering Pipeline
 **Goal**: All bot output is properly formatted Telegram-safe HTML with no silent truncation
@@ -110,7 +110,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
-| 2. Minimal Telegram Loop | 2/3 | In Progress|  |
+| 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 0/TBD | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
