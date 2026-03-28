@@ -23,11 +23,11 @@
 
 ### Sessions
 
-- [ ] **SESS-01**: Each Telegram chat has a default session — auto-created on first message if none exists
-- [ ] **SESS-02**: User can create a named session with `/new <name>`
-- [ ] **SESS-03**: User can switch to an existing named session with `/switch <name>`
-- [ ] **SESS-04**: User can list all sessions (default + named) with `/sessions`
-- [ ] **SESS-05**: Active session pointer persists in memory per chat (survives message-level context, not process restarts)
+- [x] **SESS-01**: Each Telegram chat has a default session — auto-created on first message if none exists
+- [x] **SESS-02**: User can create a named session with `/new <name>`
+- [x] **SESS-03**: User can switch to an existing named session with `/switch <name>`
+- [x] **SESS-04**: User can list all sessions (default + named) with `/sessions`
+- [x] **SESS-05**: Active session pointer persists in memory per chat (survives message-level context, not process restarts)
 - [ ] **SESS-06**: `/status` shows current session ID, OpenCode server health, and active/idle state
 
 ### MCP Questions & Permissions
@@ -111,11 +111,11 @@
 | MSG-07 | Phase 2 | Complete |
 | MSG-05 | Phase 3 | Complete |
 | MSG-06 | Phase 3 | Complete |
-| SESS-01 | Phase 4 | Pending |
-| SESS-02 | Phase 4 | Pending |
-| SESS-03 | Phase 4 | Pending |
-| SESS-04 | Phase 4 | Pending |
-| SESS-05 | Phase 4 | Pending |
+| SESS-01 | Phase 4 | Complete |
+| SESS-02 | Phase 4 | Complete |
+| SESS-03 | Phase 4 | Complete |
+| SESS-04 | Phase 4 | Complete |
+| SESS-05 | Phase 4 | Complete |
 | SESS-06 | Phase 4 | Pending |
 | CMD-01 | Phase 4 | Pending |
 | CMD-02 | Phase 4 | Pending |

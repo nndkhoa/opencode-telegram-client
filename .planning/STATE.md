@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 4 context gathered
-last_updated: "2026-03-28T15:53:34.598Z"
+status: executing
+stopped_at: Completed 04-session-commands 04-01-PLAN.md
+last_updated: "2026-03-28T16:30:38.163Z"
 last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 12
+  completed_plans: 9
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** Phase 03 — rendering-pipeline
+**Current focus:** Phase 04 — session-commands
 
 ## Current Position
 
-Phase: 4
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 04 (session-commands) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-minimal-telegram-loop P03 | 10 | 2 tasks | 6 files |
 | Phase 03-rendering-pipeline P01 | 3 | 2 tasks | 2 files |
 | Phase 03-rendering-pipeline P02 | 5 | 1 tasks | 2 files |
+| Phase 04-session-commands P01 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 03-rendering-pipeline]: Post-conversion HTML split: newline-aware 200-char lookback before hard 4096 limit
 - [Phase 03-rendering-pipeline]: handleEvent changed from void to async (Promise<void>) to support await on session.idle sends
 - [Phase 03-rendering-pipeline]: escapeHtml applied to interim buffer only — no parse_mode on interim edits (safety without HTML rendering)
+- [Phase 04-session-commands]: createNamed works standalone without prior getOrCreateDefault — avoids ordering constraint for callers
+- [Phase 04-session-commands]: switchTo('default') keyword recognized for switching back to default session by name
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T15:53:34.595Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-session-commands/04-CONTEXT.md
+Last session: 2026-03-28T16:30:38.161Z
+Stopped at: Completed 04-session-commands 04-01-PLAN.md
+Resume file: None

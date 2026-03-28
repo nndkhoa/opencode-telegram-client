@@ -79,8 +79,13 @@ Plans:
   4. `/status` shows the current session ID, OpenCode server health, and active/idle state
   5. `/cancel` aborts an in-progress OpenCode request; `/help` lists all commands with descriptions
   6. BotFather command menu is registered with all commands visible in Telegram's command picker
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 4 plans
+
+Plans:
+- [x] 04-01-PLAN.md — TDD: SessionRegistry class (default + named sessions per chat)
+- [ ] 04-02-PLAN.md — Refactor StreamingStateManager + message handler to use SessionRegistry; add abortSession()
+- [ ] 04-03-PLAN.md — Command handlers: /new, /switch, /sessions
+- [ ] 04-04-PLAN.md — Command handlers: /status, /cancel, /help + bot wiring + setMyCommands
 
 ### Phase 5: MCP Questions & Permissions
 **Goal**: OpenCode MCP questions and permission prompts are surfaced interactively in Telegram
@@ -116,6 +121,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation | 3/3 | Complete   | 2026-03-28 |
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
-| 4. Session Commands | 0/TBD | Not started | - |
+| 4. Session Commands | 1/4 | In Progress|  |
 | 5. MCP Questions & Permissions | 0/TBD | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |
