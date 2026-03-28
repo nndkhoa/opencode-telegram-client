@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Project scaffold: package.json, tsconfig, vitest, env config module
+- [x] 01-01-PLAN.md — Project scaffold: package.json, tsconfig, vitest, env config module
 - [ ] 01-02-PLAN.md — OpenCode client: health check + shared SSE loop with exponential backoff
 - [ ] 01-03-PLAN.md — grammY bot: DM-only gate + allowlist middleware + main.ts bootstrap
 
@@ -104,7 +104,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 1/3 | In Progress|  |
 | 2. Minimal Telegram Loop | 0/TBD | Not started | - |
 | 3. Rendering Pipeline | 0/TBD | Not started | - |
 | 4. Session Commands | 0/TBD | Not started | - |

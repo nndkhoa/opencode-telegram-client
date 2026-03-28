@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-28T13:02:52.355Z"
-last_activity: 2026-03-28 — Roadmap created (6 phases, 38 requirements mapped)
+status: executing
+stopped_at: Completed 01-foundation-01-PLAN.md
+last_updated: "2026-03-28T13:26:41.928Z"
+last_activity: 2026-03-28
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** Phase 1 — Foundation
+**Current focus:** Phase 01 — foundation
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created (6 phases, 38 requirements mapped)
+Phase: 01 (foundation) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-03-28
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: —
 
 *Updated after each plan completion*
+| Phase 01-foundation P01 | 2 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,8 @@ Recent decisions affecting current work:
 - [Init]: marked + sanitize-html for markdown→HTML (not telegramify-markdown)
 - [Init]: Single shared SSE connection to `GET /event`, filter by sessionID
 - [Init]: Stream plain text during response, apply HTML formatting on final message only
+- [Phase 01-foundation]: parseEnv() extracted to parse-env.ts separate from env.ts singleton — enables test imports without triggering process.exit(1)
+- [Phase 01-foundation]: ESM project with type=module and NodeNext — all imports use .js extensions even for TypeScript source
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-28T13:02:52.352Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-foundation/01-CONTEXT.md
+Last session: 2026-03-28T13:26:41.925Z
+Stopped at: Completed 01-foundation-01-PLAN.md
+Resume file: None

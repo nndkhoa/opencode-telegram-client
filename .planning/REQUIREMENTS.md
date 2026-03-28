@@ -9,7 +9,7 @@
 
 - [ ] **ACC-01**: Bot rejects messages from users not in the allowlist (checked by numeric Telegram user ID)
 - [ ] **ACC-02**: Bot rejects callback queries (inline keyboard interactions) from users not in the allowlist
-- [ ] **ACC-03**: Allowlist is configured via environment variable (comma-separated user IDs)
+- [x] **ACC-03**: Allowlist is configured via environment variable (comma-separated user IDs)
 
 ### Messaging
 
@@ -65,8 +65,8 @@
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: Project is TypeScript with strict mode enabled
-- [ ] **INFRA-02**: Configuration (bot token, allowlist, OpenCode URL) is loaded from environment variables / `.env` file
+- [x] **INFRA-01**: Project is TypeScript with strict mode enabled
+- [x] **INFRA-02**: Configuration (bot token, allowlist, OpenCode URL) is loaded from environment variables / `.env` file
 - [ ] **INFRA-03**: `README.md` documents setup, configuration, and how to run
 - [ ] **INFRA-04**: Bot connects to OpenCode via a single shared SSE connection (`GET /event`) and routes events by session ID
 
@@ -100,9 +100,9 @@
 |-------------|-------|--------|
 | ACC-01 | Phase 1 | Pending |
 | ACC-02 | Phase 1 | Pending |
-| ACC-03 | Phase 1 | Pending |
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
+| ACC-03 | Phase 1 | Complete |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
 | INFRA-04 | Phase 1 | Pending |
 | MSG-01 | Phase 2 | Pending |
 | MSG-02 | Phase 2 | Pending |
