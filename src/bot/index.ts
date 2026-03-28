@@ -10,6 +10,7 @@ import { makeCmdSessionsHandler } from "./handlers/cmd-sessions.js";
 import { makeCmdStatusHandler } from "./handlers/cmd-status.js";
 import { makeCmdCancelHandler } from "./handlers/cmd-cancel.js";
 import { makeCmdHelpHandler } from "./handlers/cmd-help.js";
+import { makeCmdModelHandler } from "./handlers/cmd-model.js";
 import type { StreamingStateManager } from "../opencode/streaming-state.js";
 import type { SessionRegistry } from "../session/registry.js";
 
@@ -28,6 +29,7 @@ export function createBot(registry: SessionRegistry, manager: StreamingStateMana
   bot.command("status", makeCmdStatusHandler(registry, manager, config.openCodeUrl));
   bot.command("cancel", makeCmdCancelHandler(registry, manager, config.openCodeUrl));
   bot.command("help", makeCmdHelpHandler());
+  bot.command("model", makeCmdModelHandler(registry, config.openCodeUrl));
 
   // Catch-all for plain text messages — must come after all bot.command() registrations
   bot.on("message:text", makeMessageHandler(registry, manager, config.openCodeUrl));

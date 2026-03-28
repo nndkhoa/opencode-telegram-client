@@ -6,6 +6,7 @@ const HELP_TEXT = `Available commands:
 /sessions — List all sessions for this chat
 /status — Show active session and OpenCode health
 /cancel — Abort the current in-progress request
+/model [name] — Switch active AI model or list available models
 /help — Show this help message`;
 
 export function makeCmdHelpHandler() {

@@ -28,6 +28,7 @@ async function main(): Promise<void> {
     { command: "status", description: "Show active session and OpenCode health" },
     { command: "cancel", description: "Abort the current in-progress request" },
     { command: "help", description: "Show all commands" },
+    { command: "model", description: "Switch active AI model or list available models" },
   ]);
   logger.info("BotFather command menu registered");
 
