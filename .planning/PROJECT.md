@@ -21,8 +21,11 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 - [x] Users can send messages to OpenCode and receive live-streaming responses — Validated in Phase 02: Minimal Telegram Loop
 - [x] Responses stream live (editing message as tokens arrive ~500ms), then replaced with clean final output — Validated in Phase 02: Minimal Telegram Loop
 
+### Validated
+
+- [x] OpenCode markdown responses are converted to Telegram-compatible HTML using marked + sanitize-html — Validated in Phase 03: rendering-pipeline
+
 ### Active
-- [ ] OpenCode markdown responses are converted to Telegram-compatible HTML using a proper conversion library
 - [ ] Each Telegram chat has a default session (auto-created on first message)
 - [ ] Users can create and switch named sessions (`/new <name>`, `/switch <name>`)
 - [ ] Session list visible via `/sessions`
@@ -85,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 — Phase 02 (Minimal Telegram Loop) complete*
+*Last updated: 2026-03-28 — Phase 03 (Rendering Pipeline) complete*
