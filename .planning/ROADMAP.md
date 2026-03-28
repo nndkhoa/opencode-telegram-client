@@ -87,6 +87,17 @@ Plans:
 - [x] 04-03-PLAN.md — Command handlers: /new, /switch, /sessions
 - [x] 04-04-PLAN.md — Command handlers: /status, /cancel, /help + bot wiring + setMyCommands
 
+### Phase 04.2: Fix unknown model at beginning; propose new way to change model (INSERTED)
+
+**Goal:** Fix "Model: unknown" on `/status` for empty sessions by resolving from global OpenCode config first; unify display with `/model`; add `/model <n>` for numbered catalog selection (CONTEXT D-01–D-10).
+**Requirements**: 04.2-D-01 … 04.2-D-10, FILE-02, CMD-05
+**Depends on:** Phase 4
+**Plans:** 2 plans
+
+Plans:
+- [ ] 04.2-01-PLAN.md — Pure helpers: `buildFlatSelectableModelRefs`, `resolveDisplayModel`, unit tests
+- [ ] 04.2-02-PLAN.md — Wire `/status` and `/model` (hints, numbering, numeric switch) + handler tests
+
 ### Phase 04.1: model switching (INSERTED)
 
 **Goal:** Users can switch the active AI model globally via `/model <name>` and list available models with `/model`
