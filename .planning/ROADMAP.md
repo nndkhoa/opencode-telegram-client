@@ -92,10 +92,10 @@ Plans:
 **Goal:** Users can switch the active AI model globally via `/model <name>` and list available models with `/model`
 **Requirements**: FILE-02
 **Depends on:** Phase 4
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 04.1 to break down)
+- [ ] 04.1-01-PLAN.md — OpenCode config API client + /model command handler + bot wiring
 
 ### Phase 5: MCP Questions & Permissions
 **Goal**: OpenCode MCP questions and permission prompts are surfaced interactively in Telegram
