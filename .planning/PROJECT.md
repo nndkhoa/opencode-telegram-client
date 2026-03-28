@@ -32,11 +32,14 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 - [x] Session list visible via `/sessions` — Validated in Phase 04: Session Commands
 - [x] Bot commands: `/new`, `/sessions`, `/switch`, `/status`, `/cancel`, `/help` — Validated in Phase 04: Session Commands
 
+### Validated
+
+- [x] Users can switch active AI model via `/model <providerID>/<modelID>` and list available models via `/model` — Validated in Phase 04.1: model-switching-context-clear
+
 ### Active
 - [ ] MCP questions from OpenCode are surfaced in Telegram — as inline keyboard buttons when options are present, free-text reply when open-ended
 - [ ] MCP question answers are relayed back to OpenCode
 - [ ] File uploads supported (send file context to OpenCode)
-- [ ] Model switching supported
 - [ ] Context management commands
 - [ ] Request/response logging — what came in from Telegram and what went to/from OpenCode
 - [ ] Runs locally (same machine as OpenCode), started with `node` or `npx`
@@ -92,4 +95,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-28 — Phase 04 (Session Commands) complete*
+*Last updated: 2026-03-28 — Phase 04.1 (Model Switching) complete*
