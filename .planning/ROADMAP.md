@@ -87,6 +87,16 @@ Plans:
 - [x] 04-03-PLAN.md — Command handlers: /new, /switch, /sessions
 - [x] 04-04-PLAN.md — Command handlers: /status, /cancel, /help + bot wiring + setMyCommands
 
+### Phase 04.1: model switching (INSERTED)
+
+**Goal:** Users can switch the active AI model globally via `/model <name>` and list available models with `/model`
+**Requirements**: FILE-02
+**Depends on:** Phase 4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 04.1 to break down)
+
 ### Phase 5: MCP Questions & Permissions
 **Goal**: OpenCode MCP questions and permission prompts are surfaced interactively in Telegram
 **Depends on**: Phase 4
