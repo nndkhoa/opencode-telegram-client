@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeCmdModelHandler, packTelegramHtmlSections } from "./cmd-model.js";
 import type { ConfigProvidersPayload } from "../../opencode/config.js";
+import { FILE02_D14_MODEL_REF } from "./fixtures/file02-d14-model-ref.js";
 
 vi.mock("../../opencode/config.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../opencode/config.js")>();
@@ -76,7 +77,22 @@ const sampleProviders: ConfigProvidersPayload = {
 };
 
 /** Matches buildFlatSelectableModelRefs(sampleProviders): opus, sonnet, gpt-4o */
-const secondFlatRef = "anthropic/claude-sonnet-4";
+const secondFlatRef = FILE02_D14_MODEL_REF;
+
+describe("FILE-02 D-14: /model agrees with /status on model label", () => {
+  it("no-arg /model HTML contains the same provider/model ref string as /status Model: line for the same fixture", async () => {
+    mockGetConfig.mockResolvedValue({ model: FILE02_D14_MODEL_REF });
+    mockGetConfigProviders.mockResolvedValue(sampleProviders);
+    const handler = makeCmdModelHandler(makeRegistry() as any, "http://localhost:4096");
+    const ctx = makeCtx("");
+    await handler(ctx as any);
+    const text = lastReplyHtml(ctx);
+    expect(text).toContain(`<code>${FILE02_D14_MODEL_REF}</code>`);
+    expect(text).toContain("(current)");
+    // Same substring must appear on /status: `Model: ${FILE02_D14_MODEL_REF}` (see cmd-status.test.ts)
+    expect(text).toContain(FILE02_D14_MODEL_REF);
+  });
+});
 
 describe("makeCmdModelHandler — no-arg path", () => {
   it("shows current model from resolveDisplayModel on first line", async () => {

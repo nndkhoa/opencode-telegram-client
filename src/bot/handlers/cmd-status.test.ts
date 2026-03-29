@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeCmdStatusHandler } from "./cmd-status.js";
+import { FILE02_D14_MODEL_REF } from "./fixtures/file02-d14-model-ref.js";
 
 vi.mock("../../opencode/health.js", () => ({
   checkHealth: vi.fn(),
@@ -35,6 +36,21 @@ function makeCtx(chatId = 42) {
   };
 }
 
+describe("FILE-02 D-14: /status agrees with /model on model label", () => {
+  it("status line contains Model: <ref> matching /model no-arg fixture (anthropic/claude-sonnet-4)", async () => {
+    mockCheckHealth.mockResolvedValue({ healthy: true, version: "1.3.3" });
+    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: FILE02_D14_MODEL_REF });
+    const registry = makeRegistry("my-project", "sess-123");
+    const manager = makeManager(false);
+    const handler = makeCmdStatusHandler(registry as any, manager as any, "http://localhost:4096");
+    const ctx = makeCtx();
+    await handler(ctx as any);
+    const reply: string = ctx.reply.mock.calls[0][0];
+    expect(reply).toContain(`Model: ${FILE02_D14_MODEL_REF}`);
+    expect(reply).toContain("anthropic/claude");
+  });
+});
+
 describe("makeCmdStatusHandler", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,7 +62,7 @@ describe("makeCmdStatusHandler", () => {
 
   it("replies with healthy status and resolved model when OpenCode is reachable (04.2)", async () => {
     mockCheckHealth.mockResolvedValue({ healthy: true, version: "1.3.3" });
-    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: "anthropic/claude-sonnet-4" });
+    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: FILE02_D14_MODEL_REF });
     const registry = makeRegistry("my-project", "sess-123");
     const manager = makeManager(false);
     const handler = makeCmdStatusHandler(registry as any, manager as any, "http://localhost:4096");
@@ -55,13 +71,13 @@ describe("makeCmdStatusHandler", () => {
     await handler(ctx as any);
 
     expect(ctx.reply).toHaveBeenCalledWith(
-      "Session: my-project | OpenCode: ✅ healthy | Model: anthropic/claude-sonnet-4 | State: idle"
+      `Session: my-project | OpenCode: ✅ healthy | Model: ${FILE02_D14_MODEL_REF} | State: idle`
     );
   });
 
   it("shows active state when manager.isBusy returns true", async () => {
     mockCheckHealth.mockResolvedValue({ healthy: true, version: "1.3.3" });
-    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: "anthropic/claude-sonnet-4" });
+    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: FILE02_D14_MODEL_REF });
     const registry = makeRegistry("my-project", "sess-123");
     const manager = makeManager(true);
     const handler = makeCmdStatusHandler(registry as any, manager as any, "http://localhost:4096");
@@ -75,7 +91,7 @@ describe("makeCmdStatusHandler", () => {
 
   it("shows model from resolver when assistant message would supply ref", async () => {
     mockCheckHealth.mockResolvedValue({ healthy: true, version: "1.3.3" });
-    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: "anthropic/claude-sonnet-4" });
+    mockResolveDisplayModel.mockResolvedValue({ kind: "resolved", ref: FILE02_D14_MODEL_REF });
     const registry = makeRegistry("my-project", "sess-123");
     const manager = makeManager(false);
     const handler = makeCmdStatusHandler(registry as any, manager as any, "http://localhost:4096");
@@ -84,7 +100,7 @@ describe("makeCmdStatusHandler", () => {
     await handler(ctx as any);
 
     const reply: string = ctx.reply.mock.calls[0][0];
-    expect(reply).toContain("Model: anthropic/claude-sonnet-4");
+    expect(reply).toContain(`Model: ${FILE02_D14_MODEL_REF}`);
   });
 
   it("shows degraded output when checkHealth throws", async () => {
