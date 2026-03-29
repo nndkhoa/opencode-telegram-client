@@ -41,11 +41,6 @@ async function main(): Promise<void> {
     baseUrl: config.openCodeUrl,
     signal: ac.signal,
     onEvent: async (event) => {
-      const props = "properties" in event ? event.properties : undefined;
-      logger.debug(
-        { eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID },
-        "OpenCode event"
-      );
       // Route event to streaming state manager — drives live Telegram message edits
       await manager.handleEvent(event, bot.api);
       // question.asked / permission.asked / lifecycle — MCP interactive UI (D-10, D-11)

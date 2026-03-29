@@ -14,6 +14,7 @@ vi.mock("../../opencode/config.js", async (importOriginal) => {
 
 vi.mock("../../persist/last-model.js", () => ({
   savePersistedModel: vi.fn(),
+  getPersistedModelRef: vi.fn(() => undefined),
 }));
 
 import { patchConfig, getConfigProviders, getConfig } from "../../opencode/config.js";
@@ -78,10 +79,6 @@ const sampleProviders: ConfigProvidersPayload = {
 const secondFlatRef = "anthropic/claude-sonnet-4";
 
 describe("makeCmdModelHandler — no-arg path", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
   it("shows current model from resolveDisplayModel on first line", async () => {
     mockGetConfig.mockResolvedValue({ model: "anthropic/claude-sonnet-4" });
     mockGetConfigProviders.mockResolvedValue(sampleProviders);
@@ -110,13 +107,27 @@ describe("makeCmdModelHandler — no-arg path", () => {
   it("falls back to single catalog default when config has no model (unset)", async () => {
     mockGetConfig.mockResolvedValue({});
     mockGetConfigProviders.mockResolvedValue(sampleProviders);
-    const handler = makeCmdModelHandler(makeRegistry() as any, "http://localhost:4096");
-    const ctx = makeCtx("");
-    await handler(ctx as any);
-    const text = lastReplyHtml(ctx);
-    expect(text).toContain("<code>anthropic/claude-sonnet-4</code>");
-    expect(text).toContain("(provider catalog default)");
-    expect(text).not.toContain("unknown");
+    // Safety: if getConfig mock is not applied to display-model's import, real fetch would hang.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      }),
+    );
+    try {
+      // No active session — avoids real fetch to /session/.../message in resolveDisplayModel
+      const handler = makeCmdModelHandler(makeRegistry(undefined) as any, "http://localhost:4096");
+      const ctx = makeCtx("");
+      await handler(ctx as any);
+      const text = lastReplyHtml(ctx);
+      expect(text).toContain("<code>anthropic/claude-sonnet-4</code>");
+      expect(text).toContain("(provider catalog default)");
+      expect(text).not.toContain("unknown");
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("groups providers with numbered lines aligned to flat catalog order", async () => {

@@ -1,4 +1,4 @@
-import { Bot } from "grammy";
+import { Bot, BotError, GrammyError, HttpError } from "grammy";
 import { config } from "../config/env.js";
 import { logger } from "../logger.js";
 import { dmOnlyMiddleware } from "./middleware/dm-only.js";
@@ -46,6 +46,29 @@ export function createBot(
   bot.on("callback_query", makeCallbackInteractiveHandler(pending, openCodeUrl, registry));
 
   bot.catch((err) => {
+    if (err instanceof BotError) {
+      const cause = err.error;
+      if (cause instanceof GrammyError) {
+        const chatId =
+          typeof cause.payload.chat_id === "number" ? cause.payload.chat_id : err.ctx.chat?.id;
+        logger.error(
+          {
+            err: cause,
+            method: cause.method,
+            telegramErrorCode: cause.error_code,
+            chatId,
+          },
+          "Telegram API error",
+        );
+        return;
+      }
+      if (cause instanceof HttpError) {
+        logger.error({ err: cause }, "Telegram HTTP error");
+        return;
+      }
+      logger.error({ err: cause, chatId: err.ctx.chat?.id }, "Unhandled bot error");
+      return;
+    }
     logger.error({ err }, "Unhandled bot error");
   });
 

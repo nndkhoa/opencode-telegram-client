@@ -1,5 +1,28 @@
 import { logger } from "../logger.js";
-import { parseEvent, type OpenCodeEvent } from "./events.js";
+import { parseEvent, type OpenCodeEvent, type MessagePartDeltaEvent } from "./events.js";
+
+/** Set `OPENCODE_SSE_VERBOSE=1` to log full parsed payloads at info (deep debug; default is eventType + sessionID only). */
+function isOpenCodeSseVerbose(): boolean {
+  const v = process.env.OPENCODE_SSE_VERBOSE;
+  return v === "1" || /^true$/i.test(v ?? "");
+}
+
+const MAX_VERBOSE_DELTA_LOG_CHARS = 8_000;
+
+/** Avoid huge log lines; keep structure for `message.part.delta`. */
+function openCodeEventForVerboseLog(event: OpenCodeEvent): unknown {
+  if (event.type !== "message.part.delta") return event;
+  const p = (event as MessagePartDeltaEvent).properties;
+  const d = p.delta ?? "";
+  if (d.length <= MAX_VERBOSE_DELTA_LOG_CHARS) return event;
+  return {
+    type: event.type,
+    properties: {
+      ...p,
+      delta: `${d.slice(0, MAX_VERBOSE_DELTA_LOG_CHARS)}… [+${d.length - MAX_VERBOSE_DELTA_LOG_CHARS} more chars]`,
+    },
+  };
+}
 
 export type SseOptions = {
   baseUrl: string;
@@ -43,10 +66,30 @@ async function readSseStream(
         const event = parseEvent(data);
         if (event) {
           const props = "properties" in event ? event.properties : undefined;
-          logger.debug(
-            { eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID },
-            "SSE event received",
-          );
+          const sessionID = (props as { sessionID?: string } | undefined)?.sessionID;
+          logger.info({ eventType: event.type, sessionID }, "OpenCode SSE event");
+          if (event.type === "message.part.delta") {
+            logger.debug(
+              {
+                eventType: event.type,
+                sessionID,
+                field: (event as MessagePartDeltaEvent).properties.field,
+                messageID: (event as MessagePartDeltaEvent).properties.messageID,
+                partID: (event as MessagePartDeltaEvent).properties.partID,
+                deltaChars: (event as MessagePartDeltaEvent).properties.delta?.length ?? 0,
+              },
+              "SSE delta detail",
+            );
+          }
+          if (isOpenCodeSseVerbose()) {
+            logger.info(
+              {
+                opencodeEvent: openCodeEventForVerboseLog(event),
+                rawLineChars: data.length,
+              },
+              "OpenCode SSE (verbose)",
+            );
+          }
           await Promise.resolve(onEvent?.(event));
         }
       }
@@ -70,7 +113,12 @@ export async function startSseLoop(opts: SseOptions): Promise<void> {
       });
 
       if (!res.ok) {
-        throw new Error(`SSE open failed: HTTP ${res.status}`);
+        const err = new Error(`SSE open failed: HTTP ${res.status}`);
+        logger.error(
+          { err, method: "GET", path: new URL(url).pathname },
+          "OpenCode HTTP error",
+        );
+        throw err;
       }
       if (!res.body) {
         throw new Error("SSE response has no body");
