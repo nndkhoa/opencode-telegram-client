@@ -115,9 +115,14 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. When OpenCode emits `question.asked` with options, the bot sends an inline keyboard; tapping a button submits the answer
   2. When OpenCode emits `question.asked` with no options, the bot sends a text prompt and the user's next message is used as the answer
-  3. When OpenCode emits `permission.asked`, the bot shows an Allow / Deny inline keyboard and relays the choice
+  3. When OpenCode emits `permission.asked`, the bot shows three inline buttons (once / always / reject per Phase 5 CONTEXT) and relays the choice
   4. `/cancel`, session switch, or a `question.replied`/`question.rejected` event clears pending question state
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — SSE types, PendingInteractiveState, POST question/permission reply clients
+- [ ] 05-02-PLAN.md — SSE interactive dispatch, inline keyboards, callback_query → OpenCode replies
+- [ ] 05-03-PLAN.md — Awaiting free-text path, command clears pending, integration tests
 
 ### Phase 6: Power Features
 **Goal**: Users can send files, switch models, clear context, and all activity is structured-logged
@@ -143,5 +148,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
-| 5. MCP Questions & Permissions | 0/TBD | Not started | - |
+| 5. MCP Questions & Permissions | 0/3 | Not started | - |
 | 6. Power Features | 0/TBD | Not started | - |
