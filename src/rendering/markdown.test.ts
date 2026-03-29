@@ -26,6 +26,15 @@ describe("renderFinalMessage", () => {
     expect(result[0]).toContain("<pre><code>");
   });
 
+  it("renders GFM pipe tables as fenced pre (aligned raw), not HTML tables Telegram would drop", () => {
+    const md = "| a | b |\n|---|---|\n| 1 | 2 |";
+    const result = renderFinalMessage(md);
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain("<pre>");
+    expect(result[0]).toContain("| a | b |");
+    expect(result[0]).not.toContain("<table");
+  });
+
   it("converts [link](url) to <a href='url'>", () => {
     const result = renderFinalMessage("[link](https://x.com)");
     expect(result).toHaveLength(1);

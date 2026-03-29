@@ -1,4 +1,5 @@
-import { marked } from "marked";
+import { lexer, marked, walkTokens } from "marked";
+import type { Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
 
 const TELEGRAM_MAX_LENGTH = 4096;
@@ -20,6 +21,28 @@ function normalizeTags(html: string): string {
       .replace(new RegExp(`</${from}>`, "gi"), `</${to}>`);
   }
   return result;
+}
+
+/**
+ * GFM pipes render to `<table>`, which we strip for Telegram HTML; Telegram has no table layout.
+ * Keep the aligned pipe text as a fenced block → `<pre><code>` (monospace), readable in chat.
+ */
+function markdownTablesToFencedCode(markdown: string): string {
+  const tables: Tokens.Table[] = [];
+  walkTokens(lexer(markdown), (token) => {
+    if (token.type === "table") {
+      tables.push(token);
+    }
+  });
+  let out = markdown;
+  for (const t of tables.reverse()) {
+    const idx = out.lastIndexOf(t.raw);
+    if (idx === -1) continue;
+    const body = t.raw.trimEnd();
+    const replacement = "```\n" + body + "\n```";
+    out = out.slice(0, idx) + replacement + out.slice(idx + t.raw.length);
+  }
+  return out;
 }
 
 function splitHtml(html: string): string[] {
@@ -63,7 +86,7 @@ export function renderFinalMessage(markdown: string): string[] {
     return ["(empty response)"];
   }
 
-  const rawHtml = marked(markdown) as string;
+  const rawHtml = marked(markdownTablesToFencedCode(markdown)) as string;
 
   const sanitized = sanitizeHtml(rawHtml, {
     allowedTags: [
