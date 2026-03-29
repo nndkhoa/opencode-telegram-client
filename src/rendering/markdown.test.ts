@@ -1,11 +1,21 @@
 import { describe, it, expect } from "vitest";
-import { appendHtmlFooterToChunks, renderFinalMessage } from "./markdown.js";
+import {
+  appendHtmlFooterToChunks,
+  renderFinalMessage,
+  telegramHtmlToFallbackPlain,
+} from "./markdown.js";
 
 describe("renderFinalMessage", () => {
   it("converts **bold** to <b>bold</b>", () => {
     const result = renderFinalMessage("**bold**");
     expect(result).toHaveLength(1);
     expect(result[0]).toContain("<b>bold</b>");
+  });
+
+  it("flattens nested bold from overlapping emphasis (Telegram rejects nested <b>)", () => {
+    const result = renderFinalMessage("**outer **inner** tail**");
+    expect(result).toHaveLength(1);
+    expect(result[0]).toBe("<b>outer inner tail</b>");
   });
 
   it("converts _italic_ to <i>italic</i>", () => {
@@ -93,6 +103,11 @@ describe("renderFinalMessage", () => {
     const result = renderFinalMessage("");
     expect(result).toHaveLength(1);
     expect(result[0]).toBe("(empty response)");
+  });
+
+  it("telegramHtmlToFallbackPlain strips tags and decodes entities", () => {
+    expect(telegramHtmlToFallbackPlain("<b>x</b> &amp; y")).toBe("x & y");
+    expect(telegramHtmlToFallbackPlain("a<br />b")).toBe("a\nb");
   });
 
   it("appendHtmlFooterToChunks appends to last chunk when under limit", () => {

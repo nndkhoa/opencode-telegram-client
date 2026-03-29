@@ -65,6 +65,45 @@ function normalizeTags(html: string): string {
 }
 
 /**
+ * Telegram HTML rejects nested identical formatting tags (e.g. `<b><b>x</b></b>`).
+ * marked can emit nested `<strong>` / `<em>` for emphasis; flatten after normalizeTags.
+ */
+function collapseNestedTag(html: string, tag: "b" | "i"): string {
+  const re = new RegExp(
+    `<${tag}([^>]*)>([\\s\\S]*?)<${tag}([^>]*)>([\\s\\S]*?)</${tag}>([\\s\\S]*?)</${tag}>`,
+    "i"
+  );
+  let s = html;
+  for (let n = 0; n < 100; n++) {
+    const next = s.replace(re, `<${tag}$1>$2$4$5</${tag}>`);
+    if (next === s) break;
+    s = next;
+  }
+  return s;
+}
+
+function collapseNestedBoldItalic(html: string): string {
+  let s = html;
+  s = collapseNestedTag(s, "b");
+  s = collapseNestedTag(s, "i");
+  return s;
+}
+
+/**
+ * When Telegram rejects HTML (`parse_mode: HTML`), convert already-rendered HTML to plain text
+ * so list emoji, 📊 labels, and paragraph breaks survive better than raw markdown.
+ */
+export function telegramHtmlToFallbackPlain(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&");
+}
+
+/**
  * GFM pipes render to `<table>`, which we strip for Telegram HTML; Telegram has no table layout.
  * Keep the aligned pipe text as a fenced block → `<pre><code>` (monospace), with a 📊 label line.
  */
@@ -162,7 +201,7 @@ export function renderFinalMessage(markdown: string): string[] {
     },
   });
 
-  const normalized = normalizeTags(sanitized).trim();
+  const normalized = collapseNestedBoldItalic(normalizeTags(sanitized)).trim();
 
   if (!normalized) {
     return ["(empty response)"];

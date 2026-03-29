@@ -5,7 +5,11 @@ import type {
   MessagePartUpdatedEvent,
   SessionIdleEvent,
 } from "./events.js";
-import { appendHtmlFooterToChunks, renderFinalMessage } from "../rendering/markdown.js";
+import {
+  appendHtmlFooterToChunks,
+  renderFinalMessage,
+  telegramHtmlToFallbackPlain,
+} from "../rendering/markdown.js";
 import {
   formatAssistantFooterHtml,
   resolveAssistantFooterLines,
@@ -260,8 +264,12 @@ export class StreamingStateManager {
         // Reserve space for footer so truncation does not drop model · agent on long replies.
         const plainFooter = `\n\n${modelRef} · ${agentLabel}`;
         const maxBody = Math.max(0, 4096 - plainFooter.length);
-        const base = escapeHtml(rawBuffer || "(empty response)").slice(0, maxBody);
-        const fallback = base + plainFooter;
+        const rendered = renderFinalMessage(rawBuffer || "(empty response)");
+        const plainFirst = telegramHtmlToFallbackPlain(rendered[0] ?? "(empty response)").slice(
+          0,
+          maxBody
+        );
+        const fallback = plainFirst + plainFooter;
         bot.editMessageText(chatId, messageId, fallback).catch(() => {});
         return;
       }
