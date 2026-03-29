@@ -67,7 +67,7 @@ completed: 2026-03-29
 1. **Task 1: Interactive dispatch from SSE** — `496c23c` (feat)
 2. **Task 2: callback_query handlers + HTTP reply wiring** — `5bfcbe1` (feat)
 
-**Plan metadata:** _(docs commit hash below)_
+**Plan metadata:** `4f46268` (docs: complete plan)
 
 ## Files Created/Modified
 
