@@ -31,7 +31,7 @@ function markdownTablesToFencedCode(markdown: string): string {
   const tables: Tokens.Table[] = [];
   walkTokens(lexer(markdown), (token) => {
     if (token.type === "table") {
-      tables.push(token);
+      tables.push(token as Tokens.Table);
     }
   });
   let out = markdown;
