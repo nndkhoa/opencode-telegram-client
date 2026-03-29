@@ -131,7 +131,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260329-9i9 | Persist chosen model so first message after bot restart uses it when available | 2026-03-29 | — | [260329-9i9-persist-chosen-model-so-first-message-af](./quick/260329-9i9-persist-chosen-model-so-first-message-af/) |
 | 260329-cyo | display model and mode (build/plan) at the end of telegram message | 2026-03-29 | — | [260329-cyo-display-model-and-mode-build-plan-at-the](./quick/260329-cyo-display-model-and-mode-build-plan-at-the/) |
-| 260329-h5o | use markdown aligned table raw to display — Telegram does not support HTML tables | 2026-03-29 | — | [260329-h5o-use-markdown-aligned-table-raw-to-displa](./quick/260329-h5o-use-markdown-aligned-table-raw-to-displa/) |
+| 260329-h5o | use markdown aligned table raw to display — Telegram does not support HTML tables | 2026-03-29 | 60e0330 | [260329-h5o-use-markdown-aligned-table-raw-to-displa](./quick/260329-h5o-use-markdown-aligned-table-raw-to-displa/) |
 
 ## Session Continuity
 
