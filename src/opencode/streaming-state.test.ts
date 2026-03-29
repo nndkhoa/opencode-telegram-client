@@ -436,6 +436,46 @@ describe("StreamingStateManager", () => {
       expect(manager.isBusy(123)).toBe(false);
     });
 
+    it("awaits in-flight interim edit before sending final HTML (race condition fix)", async () => {
+      manager.startTurn("ses_abc", 123, 456);
+
+      // Simulate an in-flight interim edit that resolves after a microtask delay
+      const callOrder: string[] = [];
+      let resolveInterim!: () => void;
+      const interimPromise = new Promise<void>((res) => { resolveInterim = res; });
+
+      vi.mocked(bot.editMessageText)
+        // First call: interim edit — returns a delayed promise
+        .mockImplementationOnce(() => {
+          return interimPromise.then(() => { callOrder.push("interim"); return {} as any; });
+        })
+        // Second call: final edit
+        .mockImplementationOnce(() => { callOrder.push("final"); return Promise.resolve({} as any); });
+
+      // Force throttle open so interim fires
+      const turn = (manager as any).turns.get("ses_abc")!;
+      turn.lastEditAt = 0;
+
+      // Dispatch a delta so the interim edit is scheduled
+      await manager.handleEvent(
+        { type: "message.part.delta", properties: { sessionID: "ses_abc", messageID: "m1", partID: "p1", field: "text", delta: "hi" } },
+        bot
+      );
+
+      // Now dispatch session.idle — it must await the pending interim before the final edit
+      const idlePromise = manager.handleEvent(
+        { type: "session.idle", properties: { sessionID: "ses_abc" } },
+        bot
+      );
+
+      // Resolve the interim edit mid-flight
+      resolveInterim();
+      await idlePromise;
+
+      // interim must have settled before final was sent
+      expect(callOrder).toEqual(["interim", "final"]);
+    });
+
     it("uses '(empty response)' if buffer is empty on session.idle", async () => {
       manager.startTurn("ses_abc", 123, 456);
 
@@ -484,6 +524,23 @@ describe("StreamingStateManager", () => {
       const secondCall = vi.mocked(bot.editMessageText).mock.calls[1];
       expect(secondCall[3]).toEqual({ parse_mode: "HTML" });
       expect(secondCall[2]).toMatch(/bold[\s\S]*<em>anthropic\/x · build<\/em>/);
+      // fallback must not contain <br> — Telegram HTML mode rejects standalone <br> outside <pre>
+      expect(secondCall[2]).not.toMatch(/<br/i);
+    });
+
+    it("fallback body uses newlines not <br> for multiline content", async () => {
+      manager.startTurn("ses_abc", 123, 456);
+      (manager as any).turns.get("ses_abc")!.buffer = "line one\n\nline two\n\nline three";
+
+      vi.mocked(bot.editMessageText)
+        .mockRejectedValueOnce(new Error("Bad Request: can't parse entities: Unsupported start tag \"br\" at byte offset 11"))
+        .mockResolvedValueOnce({} as any);
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
+
+      const secondCall = vi.mocked(bot.editMessageText).mock.calls[1];
+      expect(secondCall[2]).not.toMatch(/<br/i);
+      expect(secondCall[2]).toMatch(/line one[\s\S]*line two[\s\S]*line three/);
     });
   });
 });

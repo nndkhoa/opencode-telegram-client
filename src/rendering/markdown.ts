@@ -2,7 +2,15 @@ import { lexer, marked, walkTokens } from "marked";
 import type { Parser, Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
 
-/** Telegram has no `<ul>`/`<ol>`/`<li>`; we render one line per item with `<br>`. */
+/**
+ * Telegram HTML mode line-break rules (https://core.telegram.org/bots/api#html-style):
+ *   - Only `\n` (newline) is used for line breaks — `<br>` is NOT supported and causes
+ *     "Unsupported start tag" 400 errors.
+ *   - All formatting uses only: <b> <i> <u> <s> <code> <pre> <a> <tg-spoiler>
+ *
+ * Therefore every renderer and post-processor in this file must emit `\n`, never `<br>`.
+ */
+
 const LIST_BULLET_EMOJI = "🔹 ";
 
 /** Keycap digits 1–9 (U+0031–0039, FE0F, 20E3); 10 uses U+1F51F. After 10, fall back to `n.` */
@@ -16,29 +24,80 @@ function orderedListPrefix(index: number): string {
   return `${index}. `;
 }
 
-/**
- * Telegram HTML does not support `<ul>` / `<ol>` / `<li>`; sanitize-html drops them and list markers vanish.
- * Render lists with emoji markers + `<br>` (GFM task items use ☐/☑ via checkbox renderer).
- */
 marked.use({
   renderer: {
+    /** Headings → <b>text</b> followed by a newline (Telegram has no h1-h6). */
+    heading({ tokens }: Tokens.Heading) {
+      const text = this.parser.parseInline(tokens);
+      return `<b>${text}</b>\n`;
+    },
+
+    /** Inline code → <code>text</code> (explicit renderer to guarantee correct output). */
+    codespan({ text }: Tokens.Codespan) {
+      return `<code>${text}</code>`;
+    },
+
     checkbox({ checked }: { checked: boolean }) {
       return checked ? "☑ " : "☐ ";
     },
+
+    /**
+     * Telegram has no <ul>/<ol>/<li>. Render each item on its own line with an
+     * emoji prefix. Nested lists are indented with two spaces.
+     */
     list(this: { parser: Parser }, token: Tokens.List) {
       let n = typeof token.start === "number" ? token.start : 1;
       const rows: string[] = [];
+
       for (const item of token.items) {
-        const inner = this.parser.parse(item.tokens).trim();
-        if (item.task) {
-          const prefix = token.ordered ? orderedListPrefix(n++) : "";
-          rows.push(prefix + inner);
+        // Separate inline tokens (text) from nested list tokens so we can
+        // insert a newline between the parent label and the sub-list.
+        const inlineTokens = item.tokens.filter((t) => t.type !== "list");
+        const nestedListTokens = item.tokens.filter((t) => t.type === "list");
+
+        // Render inline part; strip <p> wrap that marked adds around block content
+        // so flattenParagraphs() doesn't insert double-newlines inside a list item.
+        const inlineParsed = inlineTokens.length
+          ? this.parser
+              .parse(inlineTokens)
+              .trim()
+              .replace(/^<p>/i, "")
+              .replace(/<\/p>$/i, "")
+              .trim()
+          : "";
+
+        // Render nested lists; they come back as already-formatted strings with \n.
+        const nestedHtml = nestedListTokens.length
+          ? nestedListTokens
+              .map((lt) => this.parser.parse([lt]).trim())
+              .join("\n")
+          : "";
+
+        const prefix = item.task
+          ? token.ordered
+            ? orderedListPrefix(n++)
+            : ""
+          : token.ordered
+            ? orderedListPrefix(n++)
+            : LIST_BULLET_EMOJI;
+
+        if (nestedHtml) {
+          // Indent every line of the nested block by two spaces.
+          const indented = nestedHtml
+            .split("\n")
+            .map((line) => (line ? `  ${line}` : line))
+            .join("\n");
+          rows.push(
+            inlineParsed
+              ? `${prefix}${inlineParsed}\n${indented}`
+              : `${prefix}${indented}`
+          );
         } else {
-          const prefix = token.ordered ? orderedListPrefix(n++) : LIST_BULLET_EMOJI;
-          rows.push(prefix + inner);
+          rows.push(`${prefix}${inlineParsed}`);
         }
       }
-      return rows.join("<br>");
+
+      return rows.join("\n");
     },
   },
 });
@@ -95,8 +154,7 @@ function collapseNestedBoldItalic(html: string): string {
  */
 export function telegramHtmlToFallbackPlain(html: string): string {
   return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>/gi, "\n")
+    .replace(/\n/g, "\n")
     .replace(/<[^>]+>/g, "")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -125,12 +183,33 @@ function markdownTablesToFencedCode(markdown: string): string {
   return out;
 }
 
-/** `<p>` is not Telegram HTML; flatten to explicit `<br><br>` before sanitize. */
+/**
+ * `<p>` is not valid in Telegram HTML. Flatten to `\n\n` (double newline = paragraph break).
+ * Telegram renders consecutive newlines as visual spacing, same as paragraph separation.
+ */
 function flattenParagraphs(html: string): string {
+  return (
+    html
+      // Standard: </p> immediately followed by <p>
+      .replace(/<\/p>\s*<p>/gi, "\n\n")
+      // After a closing tag (e.g. </code> from custom list renderer) directly before <p>
+      .replace(/(<\/[a-z]+>)\s*<p>/gi, "$1\n\n")
+      // After plain text (non-tag) before <p>
+      .replace(/([^>])\s*<p>/gi, "$1\n\n")
+      .replace(/^<p>/i, "")
+      .replace(/<\/p>/gi, "")
+  );
+}
+
+/**
+ * After sanitize-html and flattenParagraphs, any residual `<br>` tags (which Telegram
+ * rejects as "Unsupported start tag") are converted to `\n`.
+ * Then collapse 3+ consecutive newlines to 2 (paragraph spacing max).
+ */
+function normalizeBrToNewline(html: string): string {
   return html
-    .replace(/<\/p>\s*<p>/gi, "<br><br>")
-    .replace(/^<p>/i, "")
-    .replace(/<\/p>$/i, "");
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 function splitHtml(html: string): string[] {
@@ -191,7 +270,6 @@ export function renderFinalMessage(markdown: string): string[] {
       "code",
       "pre",
       "a",
-      "br",
       "tg-spoiler",
     ],
     allowedAttributes: {
@@ -201,7 +279,9 @@ export function renderFinalMessage(markdown: string): string[] {
     },
   });
 
-  const normalized = collapseNestedBoldItalic(normalizeTags(sanitized)).trim();
+  // Convert any residual <br> to \n, then normalize tag aliases.
+  const brFixed = normalizeBrToNewline(sanitized);
+  const normalized = collapseNestedBoldItalic(normalizeTags(brFixed)).trim();
 
   if (!normalized) {
     return ["(empty response)"];

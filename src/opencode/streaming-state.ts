@@ -16,6 +16,7 @@ import {
 } from "./assistant-meta.js";
 import type { SessionRegistry } from "../session/registry.js";
 import { extractOpenCodeErrorMessage } from "./open-errors.js";
+import { logger } from "../logger.js";
 
 const THROTTLE_MS = 500;
 const MAX_TELEGRAM_ERROR_BODY = 3800;
@@ -84,6 +85,12 @@ export type TurnState = {
   /** Reasoning deltas (`thinking`, `reasoning_*`, …); shown only while streaming, never in final. */
   thinkingBuffer: string;
   lastEditAt: number;
+  /**
+   * Promise of the most recently dispatched fire-and-forget interim edit.
+   * session.idle awaits this before sending the final edit so an in-flight
+   * interim cannot overwrite the final HTML message.
+   */
+  pendingInterimEdit: Promise<unknown>;
 };
 
 function escapeHtml(text: string): string {
@@ -128,6 +135,7 @@ export class StreamingStateManager {
       buffer: "",
       thinkingBuffer: "",
       lastEditAt: Date.now(),
+      pendingInterimEdit: Promise.resolve(),
     });
   }
 
@@ -234,7 +242,7 @@ export class StreamingStateManager {
       if (now - turn.lastEditAt >= THROTTLE_MS) {
         turn.lastEditAt = now;
         const interim = formatInterimStreamingMessage(turn.thinkingBuffer, turn.buffer);
-        bot
+        turn.pendingInterimEdit = bot
           .editMessageText(turn.chatId, turn.messageId, interim)
           .catch(() => {});
       }
@@ -247,9 +255,12 @@ export class StreamingStateManager {
       if (!turn) return;
 
       const rawBuffer = stripReasoningArtifactsFromAnswer(turn.buffer);
-      const { chatId, messageId } = turn;
-      // endTurn BEFORE async work to prevent race with throttled edits
+      const { chatId, messageId, pendingInterimEdit } = turn;
+      // endTurn BEFORE async work to prevent new throttled edits from being scheduled
       this.endTurn(sessionID);
+
+      // Await any in-flight interim edit so it cannot overwrite the final HTML message
+      await pendingInterimEdit;
 
       const { modelRef, agentLabel } = await resolveAssistantFooterLines(this.openCodeUrl, sessionID);
       const footerHtml = formatAssistantFooterHtml(modelRef, agentLabel);
@@ -259,7 +270,9 @@ export class StreamingStateManager {
       // Send first chunk by editing the interim message
       try {
         await bot.editMessageText(chatId, messageId, chunks[0]!, { parse_mode: "HTML" });
-      } catch {
+        logger.info({ chatId, messageId, sessionID, chunks: chunks.length }, "Final message sent (HTML)");
+      } catch (err) {
+        logger.warn({ err, chatId, messageId, sessionID }, "Final HTML edit rejected — falling back to plain");
         // D-08: HTML rejected — retry with body as escaped HTML + same italic footer as success path.
         const sep = "\n\n";
         const maxPlain = Math.max(0, 4096 - sep.length - footerHtml.length);
@@ -268,12 +281,17 @@ export class StreamingStateManager {
           0,
           maxPlain
         );
-        const bodyHtml = escapeHtml(plainFirst).replace(/\n/g, "<br>");
+        const bodyHtml = escapeHtml(plainFirst);
         let fallback = `${bodyHtml}${sep}${footerHtml}`;
         if (fallback.length > 4096) {
           fallback = fallback.slice(0, 4096);
         }
-        await bot.editMessageText(chatId, messageId, fallback, { parse_mode: "HTML" }).catch(() => {});
+        try {
+          await bot.editMessageText(chatId, messageId, fallback, { parse_mode: "HTML" });
+          logger.info({ chatId, messageId, sessionID }, "Final message sent (plain fallback)");
+        } catch (err2) {
+          logger.error({ err: err2, chatId, messageId, sessionID }, "Final fallback edit also failed");
+        }
         return;
       }
 
@@ -281,6 +299,7 @@ export class StreamingStateManager {
       for (const chunk of chunks.slice(1)) {
         await bot.sendMessage(chatId, chunk, { parse_mode: "HTML" });
       }
+      logger.info({ chatId, messageId, sessionID, extraChunks: chunks.length - 1 }, "All chunks sent");
     }
   }
 }
