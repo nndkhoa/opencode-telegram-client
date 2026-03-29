@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { makeMessageHandler } from "./message.js";
 import { StreamingStateManager } from "../../opencode/streaming-state.js";
 import type { SessionRegistry } from "../../session/registry.js";
-import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
 
 // Mock session module
 vi.mock("../../opencode/session.js", () => ({
@@ -14,12 +12,22 @@ vi.mock("../../persist/last-model.js", () => ({
   ensurePersistedModelApplied: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("../../opencode/replies.js", () => ({
+  postQuestionReply: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { sendPromptAsync } from "../../opencode/session.js";
 import { ensurePersistedModelApplied } from "../../persist/last-model.js";
+import { postQuestionReply } from "../../opencode/replies.js";
+import { PendingInteractiveState } from "../../opencode/interactive-pending.js";
+import { buildFreeTextQuestionAnswers, makeMessageHandler } from "./message.js";
 
 function makeMockPending(): PendingInteractiveState {
   return {
     rememberSessionChat: vi.fn(),
+    isAwaitingFreeTextAnswer: vi.fn().mockReturnValue(false),
+    get: vi.fn(),
+    clear: vi.fn(),
   } as unknown as PendingInteractiveState;
 }
 
@@ -153,5 +161,62 @@ describe("makeMessageHandler", () => {
       expect(ensurePersistedModelApplied).toHaveBeenCalledWith(openCodeUrl);
       expect(ensurePersistedModelApplied).toHaveBeenCalledBefore(sendPromptAsync as never);
     });
+  });
+
+  describe("MCP-02: awaiting free-text answer", () => {
+    it("posts question reply and clears pending without starting a stream turn", async () => {
+      const realPending = new PendingInteractiveState();
+      realPending.setQuestionAsked(100, {
+        requestID: "req-1",
+        sessionID: "ses-a",
+        questionInfos: [{ question: "q", header: "", options: [] }],
+        awaitingFreeText: true,
+      });
+      const ctx = makeCtx({ text: "my answer" });
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, realPending);
+      await handler(ctx as never);
+      expect(postQuestionReply).toHaveBeenCalledWith(openCodeUrl, "req-1", {
+        answers: [["my answer"]],
+      });
+      expect(realPending.get(100)).toBeUndefined();
+      expect(ctx.reply).toHaveBeenCalledWith("✅ Answer sent.");
+      expect(sendPromptAsync).not.toHaveBeenCalled();
+      expect(ctx.replyWithChatAction).not.toHaveBeenCalled();
+    });
+
+    it("blocks with busy message when awaiting but chat is busy", async () => {
+      const realPending = new PendingInteractiveState();
+      realPending.setQuestionAsked(100, {
+        requestID: "req-1",
+        sessionID: "ses-a",
+        questionInfos: [{ question: "q", header: "", options: [] }],
+        awaitingFreeText: true,
+      });
+      manager.startTurn("ses_existing", 100, 1);
+      const ctx = makeCtx({ text: "my answer" });
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, realPending);
+      await handler(ctx as never);
+      expect(postQuestionReply).not.toHaveBeenCalled();
+      expect(ctx.reply).toHaveBeenCalledWith(
+        "⏳ Still working on your last message. Please wait."
+      );
+    });
+  });
+});
+
+describe("buildFreeTextQuestionAnswers", () => {
+  it("wraps a single answer when one or zero question infos", () => {
+    expect(buildFreeTextQuestionAnswers("hello", undefined)).toEqual([["hello"]]);
+    expect(
+      buildFreeTextQuestionAnswers("hello", [{ question: "q", header: "", options: [] }])
+    ).toEqual([["hello"]]);
+  });
+
+  it("splits multiple sub-questions on blank lines", () => {
+    const infos = [
+      { question: "a", header: "", options: [] },
+      { question: "b", header: "", options: [] },
+    ];
+    expect(buildFreeTextQuestionAnswers("one\n\ntwo", infos)).toEqual([["one"], ["two"]]);
   });
 });

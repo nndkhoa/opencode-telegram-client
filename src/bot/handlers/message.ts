@@ -5,6 +5,21 @@ import { sendPromptAsync } from "../../opencode/session.js";
 import type { StreamingStateManager } from "../../opencode/streaming-state.js";
 import type { SessionRegistry } from "../../session/registry.js";
 import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
+import type { QuestionInfo } from "../../opencode/events.js";
+import { postQuestionReply } from "../../opencode/replies.js";
+
+/** Build `answers` for POST /question/{id}/reply from free-text user input (MCP-02). */
+export function buildFreeTextQuestionAnswers(
+  userText: string,
+  questionInfos: QuestionInfo[] | undefined
+): string[][] {
+  const qs = questionInfos?.length ? questionInfos : [];
+  if (qs.length <= 1) {
+    return [[userText]];
+  }
+  const parts = userText.split(/\n\n+/).map((p) => p.trim());
+  return qs.map((_, i) => [parts[i] ?? ""]);
+}
 
 export function makeMessageHandler(
   registry: SessionRegistry,
@@ -16,6 +31,32 @@ export function makeMessageHandler(
     const chatId = ctx.chat!.id;
     const text = ctx.message?.text;
     if (!text) return;
+
+    // MCP-02 / D-09: awaiting open-ended answer — before streaming busy guard (commands use bot.command first per D-08)
+    if (pending.isAwaitingFreeTextAnswer(chatId)) {
+      if (manager.isBusy(chatId)) {
+        await ctx.reply("⏳ Still working on your last message. Please wait.");
+        return;
+      }
+      const rec = pending.get(chatId);
+      if (!rec || rec.kind !== "question") {
+        pending.clear(chatId);
+        return;
+      }
+      try {
+        const answers = buildFreeTextQuestionAnswers(text, rec.questionInfos);
+        await postQuestionReply(openCodeUrl, rec.requestID, { answers });
+        pending.clear(chatId);
+        await ctx.reply("✅ Answer sent.");
+        logger.info({ chatId, requestID: rec.requestID }, "Free-text question reply posted");
+      } catch (err) {
+        logger.error({ err, chatId, requestID: rec.requestID }, "postQuestionReply failed");
+        await ctx.reply(
+          "❌ Could not send your answer to OpenCode. Check the server and try again."
+        );
+      }
+      return;
+    }
 
     // D-08: concurrency guard — check BEFORE typing action
     if (manager.isBusy(chatId)) {

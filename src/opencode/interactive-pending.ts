@@ -106,6 +106,12 @@ export class PendingInteractiveState {
     return eventSessionId === active;
   }
 
+  /** MCP-02 / D-09: open-ended question — next plain text message is the answer (not a new prompt). */
+  isAwaitingFreeTextAnswer(chatId: number): boolean {
+    const p = this.byChat.get(chatId);
+    return p?.kind === "question" && p.awaitingFreeText === true;
+  }
+
   /** MCP-06 / lifecycle: drop all pending state for a chat. */
   clear(chatId: number): void {
     this.byChat.delete(chatId);
