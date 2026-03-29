@@ -76,7 +76,7 @@ describe("assistant-meta", () => {
   });
 
   it("formatAssistantFooterHtml escapes HTML", () => {
-    expect(formatAssistantFooterHtml("a/b", "x")).toBe("<i>a/b · x</i>");
-    expect(formatAssistantFooterHtml("<x>", "a&b")).toBe("<i>&lt;x&gt; · a&amp;b</i>");
+    expect(formatAssistantFooterHtml("a/b", "x")).toBe("<em>a/b · x</em>");
+    expect(formatAssistantFooterHtml("<x>", "a&b")).toBe("<em>&lt;x&gt; · a&amp;b</em>");
   });
 });

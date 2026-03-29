@@ -4,7 +4,7 @@ import type { Api } from "grammy";
 import type { SessionRegistry } from "../session/registry.js";
 
 vi.mock("./assistant-meta.js", () => ({
-  formatAssistantFooterHtml: (m: string, a: string) => `<i>${m} · ${a}</i>`,
+  formatAssistantFooterHtml: (m: string, a: string) => `<em>${m} · ${a}</em>`,
   resolveAssistantFooterLines: vi.fn().mockResolvedValue({ modelRef: "anthropic/x", agentLabel: "build" }),
 }));
 
@@ -321,7 +321,7 @@ describe("StreamingStateManager", () => {
 
       expect(bot.editMessageText).toHaveBeenCalledWith(
         123, 456,
-        expect.stringMatching(/Final answer[\s\S]*<i>anthropic\/x · build<\/i>/),
+        expect.stringMatching(/Final answer[\s\S]*<em>anthropic\/x · build<\/em>/),
         { parse_mode: "HTML" }
       );
       expect(manager.isBusy(123)).toBe(false);
@@ -387,7 +387,7 @@ describe("StreamingStateManager", () => {
       expect(bot.editMessageText).toHaveBeenCalledWith(
         123,
         456,
-        expect.stringMatching(/Hello user[\s\S]*<i>anthropic\/x · build<\/i>/),
+        expect.stringMatching(/Hello user[\s\S]*<em>anthropic\/x · build<\/em>/),
         { parse_mode: "HTML" }
       );
       expect(bot.editMessageText).not.toHaveBeenCalledWith(
@@ -422,7 +422,7 @@ describe("StreamingStateManager", () => {
       expect(bot.editMessageText).toHaveBeenCalledWith(
         123,
         456,
-        expect.stringMatching(/User-facing reply[\s\S]*<i>anthropic\/x · build<\/i>/),
+        expect.stringMatching(/User-facing reply[\s\S]*<em>anthropic\/x · build<\/em>/),
         { parse_mode: "HTML" }
       );
     });
@@ -444,7 +444,7 @@ describe("StreamingStateManager", () => {
       expect(bot.editMessageText).toHaveBeenCalledWith(
         123,
         456,
-        expect.stringMatching(/\(empty response\)[\s\S]*<i>anthropic\/x · build<\/i>/),
+        expect.stringMatching(/\(empty response\)[\s\S]*<em>anthropic\/x · build<\/em>/),
         { parse_mode: "HTML" }
       );
     });
@@ -470,22 +470,20 @@ describe("StreamingStateManager", () => {
       );
     });
 
-    it("falls back to plain text when Telegram rejects HTML parse_mode", async () => {
+    it("falls back to escaped HTML body with italic footer when Telegram rejects first HTML edit", async () => {
       manager.startTurn("ses_abc", 123, 456);
       (manager as any).turns.get("ses_abc")!.buffer = "**bold**";
 
-      // First call (HTML) rejects, second call (fallback) should succeed
       vi.mocked(bot.editMessageText)
         .mockRejectedValueOnce(new Error("Bad Request: can't parse entities"))
         .mockResolvedValueOnce({} as any);
 
       await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
 
-      // Called twice: first with parse_mode: "HTML", then fallback without
       expect(bot.editMessageText).toHaveBeenCalledTimes(2);
       const secondCall = vi.mocked(bot.editMessageText).mock.calls[1];
-      // Second call has no parse_mode option (or undefined)
-      expect(secondCall[3]).toBeUndefined();
+      expect(secondCall[3]).toEqual({ parse_mode: "HTML" });
+      expect(secondCall[2]).toMatch(/bold[\s\S]*<em>anthropic\/x · build<\/em>/);
     });
   });
 });

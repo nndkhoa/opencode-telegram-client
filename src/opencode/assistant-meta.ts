@@ -60,7 +60,7 @@ export async function resolveAssistantFooterLines(
 export function formatAssistantFooterHtml(modelRef: string, agentLabel: string): string {
   const m = escapeMini(modelRef);
   const a = escapeMini(agentLabel);
-  return `<i>${m} · ${a}</i>`;
+  return `<em>${m} · ${a}</em>`;
 }
 
 function escapeMini(text: string): string {

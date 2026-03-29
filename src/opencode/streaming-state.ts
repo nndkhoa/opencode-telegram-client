@@ -260,17 +260,20 @@ export class StreamingStateManager {
       try {
         await bot.editMessageText(chatId, messageId, chunks[0]!, { parse_mode: "HTML" });
       } catch {
-        // D-08: HTML rejected — retry with plain escaped text (no parse_mode).
-        // Reserve space for footer so truncation does not drop model · agent on long replies.
-        const plainFooter = `\n\n${modelRef} · ${agentLabel}`;
-        const maxBody = Math.max(0, 4096 - plainFooter.length);
+        // D-08: HTML rejected — retry with body as escaped HTML + same italic footer as success path.
+        const sep = "\n\n";
+        const maxPlain = Math.max(0, 4096 - sep.length - footerHtml.length);
         const rendered = renderFinalMessage(rawBuffer || "(empty response)");
         const plainFirst = telegramHtmlToFallbackPlain(rendered[0] ?? "(empty response)").slice(
           0,
-          maxBody
+          maxPlain
         );
-        const fallback = plainFirst + plainFooter;
-        bot.editMessageText(chatId, messageId, fallback).catch(() => {});
+        const bodyHtml = escapeHtml(plainFirst).replace(/\n/g, "<br>");
+        let fallback = `${bodyHtml}${sep}${footerHtml}`;
+        if (fallback.length > 4096) {
+          fallback = fallback.slice(0, 4096);
+        }
+        await bot.editMessageText(chatId, messageId, fallback, { parse_mode: "HTML" }).catch(() => {});
         return;
       }
 
