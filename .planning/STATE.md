@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 05-mcp-questions-permissions-02-PLAN.md
-last_updated: "2026-03-29T03:47:30.066Z"
+status: verifying
+stopped_at: Completed 05-mcp-questions-permissions-03-PLAN.md
+last_updated: "2026-03-29T03:50:33.880Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 Phase: 05 (mcp-questions-permissions) — EXECUTING
 Plan: 3 of 3
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-29
 
 Progress: [░░░░░░░░░░] 0%
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04.1-model-switching-context-clear P01 | 7 | 2 tasks | 7 files |
 | Phase 05-mcp-questions-permissions P01 | 3 min | 3 tasks | 6 files |
 | Phase 05-mcp-questions-permissions P02 | 18 min | 2 tasks | 11 files |
+| Phase 05-mcp-questions-permissions P03 | 12 min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,7 @@ Recent decisions affecting current work:
 - [Phase 05-mcp-questions-permissions]: POST reply bodies: question uses answers string[][]; permission uses reply once|always|reject with optional message
 - [Phase ?]: QUESTION_OPTIONS_PAGE_SIZE=8 for D-07 pagination (Next/Prev)
 - [Phase ?]: SSE onEvent awaited in readSseStream so interactive dispatch runs after StreamingStateManager
+- [Phase 05-mcp-questions-permissions]: Awaiting free-text + busy: block with ⏳ (no answer submit)
 
 ### Pending Todos
 
@@ -132,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T03:47:16.327Z
-Stopped at: Completed 05-mcp-questions-permissions-02-PLAN.md
+Last session: 2026-03-29T03:50:33.877Z
+Stopped at: Completed 05-mcp-questions-permissions-03-PLAN.md
 Resume file: None

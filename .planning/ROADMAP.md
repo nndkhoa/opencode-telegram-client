@@ -122,7 +122,7 @@ Plans:
 Plans:
 - [x] 05-01-PLAN.md — SSE types, PendingInteractiveState, POST question/permission reply clients
 - [x] 05-02-PLAN.md — SSE interactive dispatch, inline keyboards, callback_query → OpenCode replies
-- [ ] 05-03-PLAN.md — Awaiting free-text path, command clears pending, integration tests
+- [x] 05-03-PLAN.md — Awaiting free-text path, command clears pending, integration tests
 
 ### Phase 6: Power Features
 **Goal**: Users can send files, switch models, clear context, and all activity is structured-logged
