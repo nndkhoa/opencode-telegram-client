@@ -1,4 +1,5 @@
 import type { SessionRegistry } from "../session/registry.js";
+import type { QuestionInfo } from "./events.js";
 
 export type PendingKind = "question" | "permission";
 
@@ -14,6 +15,10 @@ export type PendingInteractiveRecord = {
   /** questionIndex -> selected option indices */
   selectedOptionIndicesByQuestion: Map<number, Set<number>>;
   optionsPageOffset: number;
+  /** Open-ended or multi-question numbered fallback — submit in 05-03 */
+  awaitingFreeText?: boolean;
+  /** Snapshot for building answers[][] on submit */
+  questionInfos?: QuestionInfo[];
 };
 
 /**
@@ -22,11 +27,22 @@ export type PendingInteractiveRecord = {
  */
 export class PendingInteractiveState {
   private readonly byChat = new Map<number, PendingInteractiveRecord>();
+  /** Reverse lookup: OpenCode sessionID → Telegram chat (for SSE routing). */
+  private readonly sessionToChat = new Map<string, number>();
   private readonly callbackByToken = new Map<
     string,
     { chatId: number; kind: PendingKind; role: string; payload?: string }
   >();
   private seq = 0;
+
+  /** Call whenever we know both IDs (message path, interactive sends). */
+  rememberSessionChat(sessionID: string, chatId: number): void {
+    this.sessionToChat.set(sessionID, chatId);
+  }
+
+  getChatForSession(sessionID: string): number | undefined {
+    return this.sessionToChat.get(sessionID);
+  }
 
   get(chatId: number): PendingInteractiveRecord | undefined {
     return this.byChat.get(chatId);
@@ -41,6 +57,8 @@ export class PendingInteractiveState {
     > & {
       selectedOptionIndicesByQuestion?: Map<number, Set<number>>;
       optionsPageOffset?: number;
+      awaitingFreeText?: boolean;
+      questionInfos?: QuestionInfo[];
     }
   ): void {
     this.byChat.set(chatId, {
@@ -51,6 +69,8 @@ export class PendingInteractiveState {
       selectedOptionIndicesByQuestion:
         input.selectedOptionIndicesByQuestion ?? new Map(),
       optionsPageOffset: input.optionsPageOffset ?? 0,
+      awaitingFreeText: input.awaitingFreeText,
+      questionInfos: input.questionInfos,
     });
   }
 
@@ -101,6 +121,12 @@ export class PendingInteractiveState {
   clearOnQuestionRejected(chatId: number, requestID: string): void {
     const p = this.byChat.get(chatId);
     if (!p || p.kind !== "question") return;
+    if (p.requestID === requestID) this.byChat.delete(chatId);
+  }
+
+  clearOnPermissionReplied(chatId: number, requestID: string): void {
+    const p = this.byChat.get(chatId);
+    if (!p || p.kind !== "permission") return;
     if (p.requestID === requestID) this.byChat.delete(chatId);
   }
 

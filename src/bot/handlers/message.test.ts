@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { makeMessageHandler } from "./message.js";
 import { StreamingStateManager } from "../../opencode/streaming-state.js";
 import type { SessionRegistry } from "../../session/registry.js";
+import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
 
 // Mock session module
 vi.mock("../../opencode/session.js", () => ({
@@ -15,6 +16,12 @@ vi.mock("../../persist/last-model.js", () => ({
 
 import { sendPromptAsync } from "../../opencode/session.js";
 import { ensurePersistedModelApplied } from "../../persist/last-model.js";
+
+function makeMockPending(): PendingInteractiveState {
+  return {
+    rememberSessionChat: vi.fn(),
+  } as unknown as PendingInteractiveState;
+}
 
 function makeMockRegistry(sessionId = "ses_new123"): SessionRegistry {
   return {
@@ -51,10 +58,12 @@ function makeCtx(overrides: Partial<{
 describe("makeMessageHandler", () => {
   let manager: StreamingStateManager;
   let registry: SessionRegistry;
+  let pending: PendingInteractiveState;
   const openCodeUrl = "http://localhost:4096";
 
   beforeEach(() => {
     registry = makeMockRegistry();
+    pending = makeMockPending();
     manager = new StreamingStateManager(registry, openCodeUrl);
     vi.mocked(sendPromptAsync).mockResolvedValue(undefined);
   });
@@ -62,7 +71,7 @@ describe("makeMessageHandler", () => {
   describe("MSG-02: typing action", () => {
     it("sends typing chat action before doing anything else", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(ctx.replyWithChatAction).toHaveBeenCalledWith("typing");
     });
@@ -73,7 +82,7 @@ describe("makeMessageHandler", () => {
       manager.startTurn("ses_existing", 100, 1);
 
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
 
       expect(ctx.reply).toHaveBeenCalledWith(
@@ -86,7 +95,7 @@ describe("makeMessageHandler", () => {
   describe("D-01: session auto-creation via registry", () => {
     it("calls registry.getOrCreateDefault to get/create session", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(registry.getOrCreateDefault).toHaveBeenCalledWith(100, openCodeUrl);
     });
@@ -96,7 +105,7 @@ describe("makeMessageHandler", () => {
         new Error("ECONNREFUSED")
       );
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(ctx.reply).toHaveBeenCalledWith(
         "❌ OpenCode is unreachable. Make sure it's running at localhost:4096."
@@ -108,7 +117,7 @@ describe("makeMessageHandler", () => {
     it("edits thinking message with error if sendPromptAsync throws (D-06)", async () => {
       vi.mocked(sendPromptAsync).mockRejectedValueOnce(new Error("HTTP 503"));
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(ctx.api.editMessageText).toHaveBeenCalledWith(
         100,
@@ -121,14 +130,14 @@ describe("makeMessageHandler", () => {
   describe("MSG-01: prompt flow", () => {
     it("sends initial ⏳ Thinking... message", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(ctx.reply).toHaveBeenCalledWith("⏳ Thinking...");
     });
 
     it("calls sendPromptAsync with sessionId and user text", async () => {
       const ctx = makeCtx({ text: "What is 2+2?" });
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(sendPromptAsync).toHaveBeenCalledWith(
         openCodeUrl,
@@ -139,7 +148,7 @@ describe("makeMessageHandler", () => {
 
     it("applies persisted model before sendPromptAsync", async () => {
       const ctx = makeCtx();
-      const handler = makeMessageHandler(registry, manager, openCodeUrl);
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, pending);
       await handler(ctx as never);
       expect(ensurePersistedModelApplied).toHaveBeenCalledWith(openCodeUrl);
       expect(ensurePersistedModelApplied).toHaveBeenCalledBefore(sendPromptAsync as never);

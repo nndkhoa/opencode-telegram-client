@@ -13,8 +13,14 @@ import { makeCmdHelpHandler } from "./handlers/cmd-help.js";
 import { makeCmdModelHandler } from "./handlers/cmd-model.js";
 import type { StreamingStateManager } from "../opencode/streaming-state.js";
 import type { SessionRegistry } from "../session/registry.js";
+import type { PendingInteractiveState } from "../opencode/interactive-pending.js";
 
-export function createBot(registry: SessionRegistry, manager: StreamingStateManager): Bot {
+export function createBot(
+  registry: SessionRegistry,
+  manager: StreamingStateManager,
+  pending: PendingInteractiveState,
+  openCodeUrl: string
+): Bot {
   const bot = new Bot(config.botToken);
 
   // Middleware order: DM gate → allowlist → feature handlers (per D-04)
@@ -23,16 +29,16 @@ export function createBot(registry: SessionRegistry, manager: StreamingStateMana
 
   // Commands must be registered before the catch-all message:text handler,
   // otherwise bot.on("message:text") intercepts command messages first.
-  bot.command("new", makeCmdNewHandler(registry, config.openCodeUrl));
+  bot.command("new", makeCmdNewHandler(registry, openCodeUrl));
   bot.command("switch", makeCmdSwitchHandler(registry));
   bot.command("sessions", makeCmdSessionsHandler(registry));
-  bot.command("status", makeCmdStatusHandler(registry, manager, config.openCodeUrl));
-  bot.command("cancel", makeCmdCancelHandler(registry, manager, config.openCodeUrl));
+  bot.command("status", makeCmdStatusHandler(registry, manager, openCodeUrl));
+  bot.command("cancel", makeCmdCancelHandler(registry, manager, openCodeUrl));
   bot.command("help", makeCmdHelpHandler());
-  bot.command("model", makeCmdModelHandler(registry, config.openCodeUrl));
+  bot.command("model", makeCmdModelHandler(registry, openCodeUrl));
 
   // Catch-all for plain text messages — must come after all bot.command() registrations
-  bot.on("message:text", makeMessageHandler(registry, manager, config.openCodeUrl));
+  bot.on("message:text", makeMessageHandler(registry, manager, openCodeUrl, pending));
 
   bot.catch((err) => {
     logger.error({ err }, "Unhandled bot error");

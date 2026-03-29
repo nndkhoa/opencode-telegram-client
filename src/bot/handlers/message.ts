@@ -4,11 +4,13 @@ import { ensurePersistedModelApplied } from "../../persist/last-model.js";
 import { sendPromptAsync } from "../../opencode/session.js";
 import type { StreamingStateManager } from "../../opencode/streaming-state.js";
 import type { SessionRegistry } from "../../session/registry.js";
+import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
 
 export function makeMessageHandler(
   registry: SessionRegistry,
   manager: StreamingStateManager,
-  openCodeUrl: string
+  openCodeUrl: string,
+  pending: PendingInteractiveState
 ) {
   return async (ctx: Context): Promise<void> => {
     const chatId = ctx.chat!.id;
@@ -28,6 +30,7 @@ export function makeMessageHandler(
     let sessionId: string;
     try {
       sessionId = await registry.getOrCreateDefault(chatId, openCodeUrl);
+      pending.rememberSessionChat(sessionId, chatId);
     } catch (err) {
       logger.error({ err, chatId }, "Failed to create OpenCode session");
       await ctx.reply(

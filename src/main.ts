@@ -6,6 +6,8 @@ import { startSseLoop } from "./opencode/sse.js";
 import { createBot } from "./bot/index.js";
 import { StreamingStateManager } from "./opencode/streaming-state.js";
 import { SessionRegistry } from "./session/registry.js";
+import { PendingInteractiveState } from "./opencode/interactive-pending.js";
+import { dispatchInteractiveOpenCodeEvent } from "./opencode/interactive-dispatch.js";
 
 async function main(): Promise<void> {
   logger.info("Starting OpenCode Telegram bot...");
@@ -16,9 +18,10 @@ async function main(): Promise<void> {
   // Step 2: Create shared session registry + streaming state manager
   const registry = new SessionRegistry();
   const manager = new StreamingStateManager(registry, config.openCodeUrl);
+  const pendingInteractive = new PendingInteractiveState();
 
   // Step 3: Create bot with registry and manager injected
-  const bot = createBot(registry, manager);
+  const bot = createBot(registry, manager, pendingInteractive, config.openCodeUrl);
 
   // CMD-07: Register BotFather command menu
   await bot.api.setMyCommands([
@@ -37,14 +40,19 @@ async function main(): Promise<void> {
   const sseTask = startSseLoop({
     baseUrl: config.openCodeUrl,
     signal: ac.signal,
-    onEvent: (event) => {
+    onEvent: async (event) => {
       const props = "properties" in event ? event.properties : undefined;
       logger.debug(
         { eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID },
         "OpenCode event"
       );
       // Route event to streaming state manager — drives live Telegram message edits
-      manager.handleEvent(event, bot.api);
+      await manager.handleEvent(event, bot.api);
+      // question.asked / permission.asked / lifecycle — MCP interactive UI (D-10, D-11)
+      await dispatchInteractiveOpenCodeEvent(event, bot.api, {
+        registry,
+        pending: pendingInteractive,
+      });
     },
     // D-07: SSE disconnect after streaming started — end the active turn with an error message
     onError: async (err) => {

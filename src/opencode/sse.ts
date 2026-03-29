@@ -4,7 +4,7 @@ import { parseEvent, type OpenCodeEvent } from "./events.js";
 export type SseOptions = {
   baseUrl: string;
   signal: AbortSignal;
-  onEvent?: (event: OpenCodeEvent) => void;
+  onEvent?: (event: OpenCodeEvent) => void | Promise<void>;
   onError?: (err: unknown) => void | Promise<void>;
 };
 
@@ -21,7 +21,7 @@ function backoffDelay(attempt: number): number {
 async function readSseStream(
   res: Response,
   signal: AbortSignal,
-  onEvent: ((event: OpenCodeEvent) => void) | undefined,
+  onEvent: ((event: OpenCodeEvent) => void | Promise<void>) | undefined,
 ): Promise<void> {
   const reader = res.body!.getReader();
   const decoder = new TextDecoder();
@@ -47,7 +47,7 @@ async function readSseStream(
             { eventType: event.type, sessionID: (props as { sessionID?: string } | undefined)?.sessionID },
             "SSE event received",
           );
-          onEvent?.(event);
+          await Promise.resolve(onEvent?.(event));
         }
       }
     }
