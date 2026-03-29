@@ -30,11 +30,11 @@ export function createBot(
 
   // Commands must be registered before the catch-all message:text handler,
   // otherwise bot.on("message:text") intercepts command messages first.
-  bot.command("new", makeCmdNewHandler(registry, openCodeUrl));
-  bot.command("switch", makeCmdSwitchHandler(registry));
+  bot.command("new", makeCmdNewHandler(registry, openCodeUrl, pending));
+  bot.command("switch", makeCmdSwitchHandler(registry, pending));
   bot.command("sessions", makeCmdSessionsHandler(registry));
   bot.command("status", makeCmdStatusHandler(registry, manager, openCodeUrl));
-  bot.command("cancel", makeCmdCancelHandler(registry, manager, openCodeUrl));
+  bot.command("cancel", makeCmdCancelHandler(registry, manager, openCodeUrl, pending));
   bot.command("help", makeCmdHelpHandler());
   bot.command("model", makeCmdModelHandler(registry, openCodeUrl));
 

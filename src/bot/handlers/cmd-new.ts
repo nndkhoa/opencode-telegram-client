@@ -1,11 +1,16 @@
 import type { Context } from "grammy";
 import type { SessionRegistry } from "../../session/registry.js";
+import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
 import { createSession } from "../../opencode/session.js";
 import { logger } from "../../logger.js";
 
 const NAME_REGEX = /^[a-z0-9][a-z0-9\-_]*$/;
 
-export function makeCmdNewHandler(registry: SessionRegistry, openCodeUrl: string) {
+export function makeCmdNewHandler(
+  registry: SessionRegistry,
+  openCodeUrl: string,
+  pending: PendingInteractiveState
+) {
   return async (ctx: Context): Promise<void> => {
     const chatId = ctx.chat!.id;
     const rawArg = (ctx.match as string | undefined)?.trim() ?? "";
@@ -30,6 +35,8 @@ export function makeCmdNewHandler(registry: SessionRegistry, openCodeUrl: string
     try {
       const sessionId = await createSession(openCodeUrl);
       registry.createNamed(chatId, name, sessionId);
+      pending.clear(chatId);
+      pending.rememberSessionChat(sessionId, chatId);
       logger.info({ chatId, name, sessionId }, "Created named session");
       await ctx.reply("─────────────────────");
       await ctx.reply(`✅ Created and switched to session "${name}".`);

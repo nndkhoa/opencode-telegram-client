@@ -23,6 +23,13 @@ function makeManager(busy = false, turn?: { chatId: number; messageId: number; b
   };
 }
 
+function makePending(getReturn?: unknown) {
+  return {
+    get: vi.fn().mockReturnValue(getReturn),
+    clear: vi.fn(),
+  };
+}
+
 function makeCtx(chatId = 42) {
   return {
     chat: { id: chatId },
@@ -41,12 +48,37 @@ describe("makeCmdCancelHandler", () => {
   it("replies with nothing-in-progress when not busy (D-11)", async () => {
     const registry = makeRegistry();
     const manager = makeManager(false);
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const pending = makePending(undefined);
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx();
 
     await handler(ctx as any);
 
     expect(ctx.reply).toHaveBeenCalledWith("ℹ️ Nothing in progress to cancel.");
+    expect(mockAbortSession).not.toHaveBeenCalled();
+  });
+
+  it("clears pending interactive when not busy but a prompt was pending (MCP-06)", async () => {
+    const registry = makeRegistry();
+    const manager = makeManager(false);
+    const pending = makePending({ kind: "question", requestID: "r1" });
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
+    const ctx = makeCtx();
+
+    await handler(ctx as any);
+
+    expect(pending.clear).toHaveBeenCalledWith(42);
+    expect(ctx.reply).toHaveBeenCalledWith("✅ Cancelled.");
     expect(mockAbortSession).not.toHaveBeenCalled();
   });
 
@@ -56,11 +88,18 @@ describe("makeCmdCancelHandler", () => {
       getActiveSessionId: vi.fn().mockReturnValue(null),
     };
     const manager = makeManager(true);
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const pending = makePending();
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx();
 
     await handler(ctx as any);
 
+    expect(pending.clear).toHaveBeenCalledWith(42);
     expect(ctx.reply).toHaveBeenCalledWith("ℹ️ Nothing in progress to cancel.");
     expect(mockAbortSession).not.toHaveBeenCalled();
   });
@@ -69,14 +108,21 @@ describe("makeCmdCancelHandler", () => {
     const turnData = { chatId: 42, messageId: 100, buffer: "hello", lastEditAt: Date.now() };
     const registry = makeRegistry("sess-123");
     const manager = makeManager(true, turnData);
+    const pending = makePending();
     mockAbortSession.mockResolvedValue(undefined);
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx(42);
 
     await handler(ctx as any);
 
     expect(mockAbortSession).toHaveBeenCalledWith("http://localhost:4096", "sess-123");
     expect(manager.endTurn).toHaveBeenCalledWith("sess-123");
+    expect(pending.clear).toHaveBeenCalledWith(42);
     expect(ctx.api.editMessageText).toHaveBeenCalledWith(42, 100, "🚫 Cancelled.");
     expect(ctx.reply).toHaveBeenCalledWith("✅ Cancelled.");
   });
@@ -91,7 +137,13 @@ describe("makeCmdCancelHandler", () => {
       endTurn: vi.fn().mockImplementation(() => { callOrder.push("endTurn"); }),
     };
     mockAbortSession.mockResolvedValue(undefined);
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const pending = makePending();
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx(42);
 
     await handler(ctx as any);
@@ -104,13 +156,20 @@ describe("makeCmdCancelHandler", () => {
     const registry = makeRegistry("sess-123");
     const manager = makeManager(true, turnData);
     mockAbortSession.mockRejectedValue(new Error("abort failed"));
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const pending = makePending();
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx(42);
 
     await handler(ctx as any);
 
     // Despite abort failure, cleanup continues
     expect(manager.endTurn).toHaveBeenCalledWith("sess-123");
+    expect(pending.clear).toHaveBeenCalledWith(42);
     expect(ctx.api.editMessageText).toHaveBeenCalledWith(42, 100, "🚫 Cancelled.");
     expect(ctx.reply).toHaveBeenCalledWith("✅ Cancelled.");
   });
@@ -119,12 +178,19 @@ describe("makeCmdCancelHandler", () => {
     const registry = makeRegistry("sess-123");
     const manager = makeManager(true, undefined);
     mockAbortSession.mockResolvedValue(undefined);
-    const handler = makeCmdCancelHandler(registry as any, manager as any, "http://localhost:4096");
+    const pending = makePending();
+    const handler = makeCmdCancelHandler(
+      registry as any,
+      manager as any,
+      "http://localhost:4096",
+      pending as any
+    );
     const ctx = makeCtx(42);
 
     await handler(ctx as any);
 
     expect(manager.endTurn).toHaveBeenCalledWith("sess-123");
+    expect(pending.clear).toHaveBeenCalledWith(42);
     expect(ctx.api.editMessageText).not.toHaveBeenCalled();
     expect(ctx.reply).toHaveBeenCalledWith("✅ Cancelled.");
   });

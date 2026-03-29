@@ -1,25 +1,34 @@
 import type { Context } from "grammy";
 import type { SessionRegistry } from "../../session/registry.js";
 import type { StreamingStateManager } from "../../opencode/streaming-state.js";
+import type { PendingInteractiveState } from "../../opencode/interactive-pending.js";
 import { abortSession } from "../../opencode/session.js";
 import { logger } from "../../logger.js";
 
 export function makeCmdCancelHandler(
   registry: SessionRegistry,
   manager: StreamingStateManager,
-  openCodeUrl: string
+  openCodeUrl: string,
+  pending: PendingInteractiveState
 ) {
   return async (ctx: Context): Promise<void> => {
     const chatId = ctx.chat!.id;
 
-    // D-11: nothing in progress
+    // MCP-06: dismiss interactive prompt (e.g. awaiting free-text) when not streaming
     if (!manager.isBusy(chatId)) {
-      await ctx.reply("ℹ️ Nothing in progress to cancel.");
+      if (pending.get(chatId)) {
+        pending.clear(chatId);
+        await ctx.reply("✅ Cancelled.");
+        logger.info({ chatId }, "Cancel dismissed pending interactive");
+      } else {
+        await ctx.reply("ℹ️ Nothing in progress to cancel.");
+      }
       return;
     }
 
     const sessionId = registry.getActiveSessionId(chatId);
     if (!sessionId) {
+      pending.clear(chatId);
       await ctx.reply("ℹ️ Nothing in progress to cancel.");
       return;
     }
@@ -42,6 +51,7 @@ export function makeCmdCancelHandler(
       await ctx.api.editMessageText(turn.chatId, turn.messageId, "🚫 Cancelled.").catch(() => {});
     }
 
+    pending.clear(chatId);
     await ctx.reply("✅ Cancelled.");
     logger.info({ chatId, sessionId }, "Cancel command executed");
   };
