@@ -151,6 +151,16 @@ export function makeCallbackInteractiveHandler(
           return;
         }
 
+        if (resolved.role === "q:custom" && q0.custom !== false) {
+          // Delete keyboard prompt, send a plain free-text prompt, switch pending to awaitingFreeText.
+          await deleteInteractivePromptMessage(ctx.api, chatId, rec.telegramMessageId);
+          const header = q0.header ? `${q0.header}\n\n` : "";
+          const promptText = `✏️ ${header}${q0.question}\n\nType your answer and send it.`;
+          const sent = await ctx.api.sendMessage(chatId, promptText);
+          pending.switchToFreeText(chatId, sent.message_id);
+          return;
+        }
+
         answerOpts = { text: "Unsupported action." };
         return;
       }

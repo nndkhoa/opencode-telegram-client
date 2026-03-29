@@ -183,4 +183,15 @@ export class PendingInteractiveState {
   unregisterCallbackToken(token: string): void {
     this.callbackByToken.delete(token);
   }
+
+  /**
+   * Transition a keyboard-mode question to free-text mode (q:custom button).
+   * Sets awaitingFreeText and updates the stored message ID to the new prompt message.
+   */
+  switchToFreeText(chatId: number, telegramMessageId: number): void {
+    const p = this.byChat.get(chatId);
+    if (!p || p.kind !== "question") return;
+    p.awaitingFreeText = true;
+    p.telegramMessageId = telegramMessageId;
+  }
 }

@@ -33,11 +33,8 @@ export function makeMessageHandler(
     if (!text) return;
 
     // MCP-02 / D-09: awaiting open-ended answer — before streaming busy guard (commands use bot.command first per D-08)
+    // NOTE: do NOT apply isBusy guard here — OpenCode is waiting for this reply (that's why it's "busy").
     if (pending.isAwaitingFreeTextAnswer(chatId)) {
-      if (manager.isBusy(chatId)) {
-        await ctx.reply("⏳ Still working on your last message. Please wait.");
-        return;
-      }
       const rec = pending.get(chatId);
       if (!rec || rec.kind !== "question") {
         pending.clear(chatId);
@@ -51,7 +48,6 @@ export function makeMessageHandler(
         if (promptMid !== undefined) {
           await ctx.api.deleteMessage(chatId, promptMid).catch(() => {});
         }
-        await ctx.reply("✅ Answer sent.");
         logger.info({ chatId, requestID: rec.requestID }, "Free-text question reply posted");
       } catch (err) {
         logger.error({ err, chatId, requestID: rec.requestID }, "postQuestionReply failed");

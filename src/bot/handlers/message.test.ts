@@ -202,12 +202,12 @@ describe("makeMessageHandler", () => {
       });
       expect(ctx.api.deleteMessage).toHaveBeenCalledWith(100, 200);
       expect(realPending.get(100)).toBeUndefined();
-      expect(ctx.reply).toHaveBeenCalledWith("✅ Answer sent.");
+      expect(ctx.reply).not.toHaveBeenCalled();
       expect(sendPromptAsync).not.toHaveBeenCalled();
       expect(ctx.replyWithChatAction).not.toHaveBeenCalled();
     });
 
-    it("blocks with busy message when awaiting but chat is busy", async () => {
+    it("sends answer even when chat is busy (OpenCode is waiting for the reply)", async () => {
       const realPending = new PendingInteractiveState();
       realPending.setQuestionAsked(100, {
         requestID: "req-1",
@@ -215,14 +215,15 @@ describe("makeMessageHandler", () => {
         questionInfos: [{ question: "q", header: "", options: [] }],
         awaitingFreeText: true,
       });
+      // Chat is busy because OpenCode is awaiting our reply — should NOT block.
       manager.startTurn("ses_existing", 100, 1);
       const ctx = makeCtx({ text: "my answer" });
       const handler = makeMessageHandler(registry, manager, openCodeUrl, realPending);
       await handler(ctx as never);
-      expect(postQuestionReply).not.toHaveBeenCalled();
-      expect(ctx.reply).toHaveBeenCalledWith(
-        "⏳ Still working on your last message. Please wait."
-      );
+      expect(postQuestionReply).toHaveBeenCalledWith(openCodeUrl, "req-1", {
+        answers: [["my answer"]],
+      });
+      expect(ctx.reply).not.toHaveBeenCalled();
     });
   });
 });

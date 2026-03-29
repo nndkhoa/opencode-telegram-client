@@ -101,7 +101,11 @@ export function buildQuestionKeyboardForChat(
   const rec = pending.get(chatId);
   if (!rec || rec.kind !== "question" || !rec.questionInfos?.length) return undefined;
   const q0 = rec.questionInfos[0];
-  if (!q0 || !q0.options.length) return undefined;
+  if (!q0) return undefined;
+  // custom defaults to true per OpenCode API spec (omitted field = true).
+  const allowCustom = q0.custom !== false;
+  // Need at least options OR a custom free-text button to build a keyboard.
+  if (!q0.options.length && !allowCustom) return undefined;
 
   const offset = rec.optionsPageOffset;
   const options = q0.options;
@@ -151,6 +155,11 @@ export function buildQuestionKeyboardForChat(
       const tn = pending.registerCallbackToken(chatId, "question", "q:page", "next");
       kb.text("Next »", tn);
     }
+  }
+
+  if (allowCustom) {
+    const tc = pending.registerCallbackToken(chatId, "question", "q:custom");
+    kb.row().text("✏️ Type my own...", tc);
   }
 
   const header = q0.header ? `${q0.header}\n\n` : "";
@@ -211,7 +220,11 @@ async function sendQuestionPlainAwaitingText(
 
 function hasUsableSingleQuestionKeyboard(questions: QuestionInfo[]): boolean {
   if (questions.length !== 1) return false;
-  return questions[0]!.options.length > 0;
+  const q0 = questions[0]!;
+  // custom defaults to true per OpenCode API spec (omitted field = true).
+  const allowCustom = q0.custom !== false;
+  // Use keyboard path if there are selectable options OR if custom free-text is allowed.
+  return q0.options.length > 0 || allowCustom;
 }
 
 /**
