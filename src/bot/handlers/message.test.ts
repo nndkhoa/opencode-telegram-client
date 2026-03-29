@@ -163,6 +163,26 @@ describe("makeMessageHandler", () => {
     });
   });
 
+  describe("D-08 command precedence", () => {
+    it("Telegram routes /commands to bot.command before message:text; this handler only runs for plain text", async () => {
+      // If plain text reaches makeMessageHandler while awaiting, it is submitted as an answer (D-09).
+      // Real /switch updates go to makeCmdSwitchHandler — they do not hit this path (createBot registration order).
+      const realPending = new PendingInteractiveState();
+      realPending.setQuestionAsked(100, {
+        requestID: "req-edge",
+        sessionID: "ses-a",
+        questionInfos: [{ question: "q", header: "", options: [] }],
+        awaitingFreeText: true,
+      });
+      const ctx = makeCtx({ text: "/switch foo" });
+      const handler = makeMessageHandler(registry, manager, openCodeUrl, realPending);
+      await handler(ctx as never);
+      expect(postQuestionReply).toHaveBeenCalledWith(openCodeUrl, "req-edge", {
+        answers: [["/switch foo"]],
+      });
+    });
+  });
+
   describe("MCP-02: awaiting free-text answer", () => {
     it("posts question reply and clears pending without starting a stream turn", async () => {
       const realPending = new PendingInteractiveState();

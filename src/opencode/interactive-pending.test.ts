@@ -51,6 +51,18 @@ describe("PendingInteractiveState", () => {
     expect(s.get(7)).toBeUndefined();
   });
 
+  it("MCP-06 / SSE: question.replied clears pending after session→chat mapping (D-11 delivery)", () => {
+    const s = new PendingInteractiveState();
+    s.rememberSessionChat("sess-open", 99);
+    s.setQuestionAsked(99, {
+      requestID: "req-sse",
+      sessionID: "sess-open",
+      awaitingFreeText: true,
+    });
+    s.clearOnQuestionReplied(99, "req-sse");
+    expect(s.get(99)).toBeUndefined();
+  });
+
   it("toggleQuestionOption updates selection sets", () => {
     const s = new PendingInteractiveState();
     s.setQuestionAsked(1, { requestID: "r", sessionID: "s" });
