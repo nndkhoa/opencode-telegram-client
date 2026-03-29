@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Phase 5 context updated (permission three-way)
-last_updated: "2026-03-29T03:33:08.271Z"
-last_activity: "2026-03-29 - Completed quick task 260329-cyo: display model and mode (build/plan) at the end of telegram message"
+status: executing
+stopped_at: Completed 05-mcp-questions-permissions-01-PLAN.md
+last_updated: "2026-03-29T03:43:08.963Z"
+last_activity: 2026-03-29
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 18
+  completed_plans: 16
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** Phase 5 — MCP Questions & Permissions
+**Current focus:** Phase 05 — mcp-questions-permissions
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase 04.2 complete — ready for Phase 5
-Last activity: 2026-03-29 - Completed quick task 260329-cyo: display model and mode (build/plan) at the end of telegram message
+Phase: 05 (mcp-questions-permissions) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
+Last activity: 2026-03-29
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-session-commands P02 | 12 | 2 tasks | 8 files |
 | Phase 04-session-commands P04 | 15 | 2 tasks | 8 files |
 | Phase 04.1-model-switching-context-clear P01 | 7 | 2 tasks | 7 files |
+| Phase 05-mcp-questions-permissions P01 | 3 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase 04-session-commands/04-04]: setMyCommands called in main.ts before bot.start() for one-time BotFather menu registration
 - [Phase 04-session-commands/04-04]: JS default param footgun: passing undefined explicitly triggers default — use null as no-value sentinel in vi.fn test helpers
 - [Phase 04.1-model-switching-context-clear]: /model arg is NOT lowercased — model IDs are case-sensitive
+- [Phase 05-mcp-questions-permissions]: Interactive SSE types aligned with OpenCode SDK Event union (question/permission asked and lifecycle events)
+- [Phase 05-mcp-questions-permissions]: POST reply bodies: question uses answers string[][]; permission uses reply once|always|reject with optional message
 
 ### Pending Todos
 
@@ -126,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-29T03:33:08.265Z
-Stopped at: Phase 5 context updated (permission three-way)
-Resume file: .planning/phases/05-mcp-questions-permissions/05-CONTEXT.md
+Last session: 2026-03-29T03:43:08.961Z
+Stopped at: Completed 05-mcp-questions-permissions-01-PLAN.md
+Resume file: None

@@ -34,10 +34,10 @@
 
 - [ ] **MCP-01**: When OpenCode emits a `question.asked` event with selectable options, bot sends an inline keyboard with the options
 - [ ] **MCP-02**: When OpenCode emits a `question.asked` event with no options (open-ended), bot sends a plain text prompt and awaits the user's next message as the answer
-- [ ] **MCP-03**: User's answer (button press or text reply) is sent to OpenCode via `POST /question/{requestID}/reply`
+- [x] **MCP-03**: User's answer (button press or text reply) is sent to OpenCode via `POST /question/{requestID}/reply`
 - [ ] **MCP-04**: When OpenCode emits a `permission.asked` event, bot surfaces it as an inline keyboard (Allow / Deny)
-- [ ] **MCP-05**: Permission answer is sent via `POST /permission/{requestID}/reply`
-- [ ] **MCP-06**: Pending question state is cleared on `/cancel`, on `question.replied`/`question.rejected` events, or on session switch
+- [x] **MCP-05**: Permission answer is sent via `POST /permission/{requestID}/reply`
+- [x] **MCP-06**: Pending question state is cleared on `/cancel`, on `question.replied`/`question.rejected` events, or on session switch
 
 ### Commands
 
@@ -126,10 +126,10 @@
 | CMD-07 | Phase 4 | Complete |
 | MCP-01 | Phase 5 | Pending |
 | MCP-02 | Phase 5 | Pending |
-| MCP-03 | Phase 5 | Pending |
+| MCP-03 | Phase 5 | Complete |
 | MCP-04 | Phase 5 | Pending |
-| MCP-05 | Phase 5 | Pending |
-| MCP-06 | Phase 5 | Pending |
+| MCP-05 | Phase 5 | Complete |
+| MCP-06 | Phase 5 | Complete |
 | FILE-01 | Phase 6 | Pending |
 | FILE-02 | Phase 6 | Complete |
 | FILE-03 | Phase 6 | Pending |
