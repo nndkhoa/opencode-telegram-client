@@ -139,7 +139,7 @@ None yet.
 | 260329-cyo | display model and mode (build/plan) at the end of telegram message | 2026-03-29 | — | [260329-cyo-display-model-and-mode-build-plan-at-the](./quick/260329-cyo-display-model-and-mode-build-plan-at-the/) |
 | 260329-h5o | use markdown aligned table raw to display — Telegram does not support HTML tables | 2026-03-29 | 60e0330 | [260329-h5o-use-markdown-aligned-table-raw-to-displa](./quick/260329-h5o-use-markdown-aligned-table-raw-to-displa/) |
 | 260329-hhx | After Telegram choice, remove inline keyboard once answer is submitted to OpenCode | 2026-03-29 | — | [260329-hhx-after-telegram-choice-remove-inline-keyb](./quick/260329-hhx-after-telegram-choice-remove-inline-keyb/) |
-| 260329-owj | Heartbeat SSE log silence; bullet/numbered lists in final HTML; OpenCode session.error / assistant error to Telegram | 2026-03-29 | ec30eb4 | [260329-owj-heartbeat-logging-list-rendering-in-fina](./quick/260329-owj-heartbeat-logging-list-rendering-in-fina/) |
+| 260329-owj | Heartbeat SSE log silence; bullet/numbered lists in final HTML; OpenCode session.error / assistant error to Telegram | 2026-03-29 | 1589856 | [260329-owj-heartbeat-logging-list-rendering-in-fina](./quick/260329-owj-heartbeat-logging-list-rendering-in-fina/) |
 
 ## Session Continuity
 
