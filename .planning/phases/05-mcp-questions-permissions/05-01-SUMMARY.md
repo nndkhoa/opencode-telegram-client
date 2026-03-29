@@ -71,7 +71,7 @@ completed: 2026-03-29
 3. **Fix: events.test strict narrowing for `tsc`** — `176e23c` (fix)
 4. **Task 3: Reply HTTP clients** — `d6313a2` (feat)
 
-**Plan metadata:** _(pending — docs commit after gsd-tools)_
+**Plan metadata:** `9ce7c4c` (docs: complete plan)
 
 _Note: Extra fix commit after Task 1 tests so `npm run build` passes strict TypeScript._
 
