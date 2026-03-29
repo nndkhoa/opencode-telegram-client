@@ -40,9 +40,12 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 
 - [x] `/status` and `/model` agree on “current model” via shared resolution (config before session messages); empty session shows global model when set; `/model` supports numbered catalog and `/model <n>` — Validated in Phase 04.2: fix-unknown-model-at-beginning-propose-new-way-to-change-model
 
+### Validated
+
+- [x] MCP questions from OpenCode are surfaced in Telegram — inline keyboards when options are present, free-text reply when open-ended — Validated in Phase 5: MCP Questions & Permissions
+- [x] MCP question answers are relayed back to OpenCode — Validated in Phase 5: MCP Questions & Permissions
+
 ### Active
-- [ ] MCP questions from OpenCode are surfaced in Telegram — as inline keyboard buttons when options are present, free-text reply when open-ended
-- [ ] MCP question answers are relayed back to OpenCode
 - [ ] File uploads supported (send file context to OpenCode)
 - [ ] Context management commands
 - [ ] Request/response logging — what came in from Telegram and what went to/from OpenCode
@@ -99,4 +102,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 — Phase 04.2 (status/model resolution + numbered /model) complete*
+*Last updated: 2026-03-29 — Phase 5 (MCP questions & permissions) complete*

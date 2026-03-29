@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Minimal Telegram Loop** - Allowlist + text in → prompt_async → live streaming message (completed 2026-03-28)
 - [x] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message (completed 2026-03-28)
 - [x] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help) (completed 2026-03-28)
-- [ ] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events
+- [x] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events (completed 2026-03-29)
 - [ ] **Phase 6: Power Features** - File uploads, model switching, context clear, structured pino logging, README
 
 ## Phase Details
@@ -148,5 +148,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
-| 5. MCP Questions & Permissions | 2/3 | In Progress|  |
+| 5. MCP Questions & Permissions | 3/3 | Complete   | 2026-03-29 |
 | 6. Power Features | 0/TBD | Not started | - |
