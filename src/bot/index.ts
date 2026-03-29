@@ -5,6 +5,8 @@ import { dmOnlyMiddleware } from "./middleware/dm-only.js";
 import { allowlistMiddleware } from "./middleware/allowlist.js";
 import { telegramLogMiddleware } from "./middleware/telegram-log.js";
 import { makeMessageHandler } from "./handlers/message.js";
+import { makePhotoHandler } from "./handlers/photo.js";
+import { makeUnsupportedMediaHandler } from "./handlers/unsupported-media.js";
 import { makeCmdNewHandler } from "./handlers/cmd-new.js";
 import { makeCmdSwitchHandler } from "./handlers/cmd-switch.js";
 import { makeCmdSessionsHandler } from "./handlers/cmd-sessions.js";
@@ -39,6 +41,14 @@ export function createBot(
   bot.command("cancel", makeCmdCancelHandler(registry, manager, openCodeUrl, pending));
   bot.command("help", makeCmdHelpHandler());
   bot.command("model", makeCmdModelHandler(registry, openCodeUrl));
+
+  const unsupportedMedia = makeUnsupportedMediaHandler();
+  bot.on("message:document", unsupportedMedia);
+  bot.on("message:voice", unsupportedMedia);
+  bot.on("message:video", unsupportedMedia);
+  bot.on("message:sticker", unsupportedMedia);
+
+  bot.on("message:photo", makePhotoHandler(registry, manager, openCodeUrl, pending));
 
   // Catch-all for plain text messages — must come after all bot.command() registrations
   bot.on("message:text", makeMessageHandler(registry, manager, openCodeUrl, pending));
