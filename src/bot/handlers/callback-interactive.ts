@@ -1,4 +1,5 @@
 import type { Context } from "grammy";
+import { InlineKeyboard } from "grammy";
 import { logger } from "../../logger.js";
 import { postPermissionReply, postQuestionReply } from "../../opencode/replies.js";
 import { PendingInteractiveState } from "../../opencode/interactive-pending.js";
@@ -9,6 +10,20 @@ import {
 } from "../../opencode/interactive-dispatch.js";
 
 type AnswerOpts = { text?: string; show_alert?: boolean };
+
+/** Telegram keeps inline buttons until the message markup is cleared. */
+async function removeInlineKeyboardFromMessage(
+  api: Context["api"],
+  chatId: number,
+  messageId: number | undefined
+): Promise<void> {
+  if (messageId === undefined) return;
+  await api
+    .editMessageReplyMarkup(chatId, messageId, {
+      reply_markup: new InlineKeyboard([]),
+    })
+    .catch(() => {});
+}
 
 /**
  * Inline keyboard callbacks for MCP question/permission prompts (ACC-02 after allowlist).
@@ -65,6 +80,7 @@ export function makeCallbackInteractiveHandler(
           answerOpts = { text: "Unknown action." };
           return;
         }
+        await removeInlineKeyboardFromMessage(ctx.api, chatId, rec.telegramMessageId);
         pending.clear(chatId);
         return;
       }
@@ -118,6 +134,7 @@ export function makeCallbackInteractiveHandler(
           const indices = sel ? Array.from(sel).sort((a, b) => a - b) : [];
           const labels = indices.map((i) => q0.options[i]?.label).filter(Boolean) as string[];
           await postQuestionReply(openCodeUrl, rec.requestID, { answers: [labels] });
+          await removeInlineKeyboardFromMessage(ctx.api, chatId, rec.telegramMessageId);
           pending.clear(chatId);
           answerOpts = { text: "Submitted." };
           return;
@@ -133,7 +150,9 @@ export function makeCallbackInteractiveHandler(
             return;
           }
           await postQuestionReply(openCodeUrl, rec.requestID, { answers: [[opt.label]] });
+          await removeInlineKeyboardFromMessage(ctx.api, chatId, rec.telegramMessageId);
           pending.clear(chatId);
+          answerOpts = { text: "Submitted." };
           return;
         }
 

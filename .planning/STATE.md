@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 Phase: 6
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-03-29 — quick 260329-h5o: markdown tables as fenced pre for Telegram
+Last activity: 2026-03-29 — quick 260329-hhx: remove inline keyboard after Telegram MCP choice
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -132,6 +132,7 @@ None yet.
 | 260329-9i9 | Persist chosen model so first message after bot restart uses it when available | 2026-03-29 | — | [260329-9i9-persist-chosen-model-so-first-message-af](./quick/260329-9i9-persist-chosen-model-so-first-message-af/) |
 | 260329-cyo | display model and mode (build/plan) at the end of telegram message | 2026-03-29 | — | [260329-cyo-display-model-and-mode-build-plan-at-the](./quick/260329-cyo-display-model-and-mode-build-plan-at-the/) |
 | 260329-h5o | use markdown aligned table raw to display — Telegram does not support HTML tables | 2026-03-29 | 60e0330 | [260329-h5o-use-markdown-aligned-table-raw-to-displa](./quick/260329-h5o-use-markdown-aligned-table-raw-to-displa/) |
+| 260329-hhx | After Telegram choice, remove inline keyboard once answer is submitted to OpenCode | 2026-03-29 | — | [260329-hhx-after-telegram-choice-remove-inline-keyb](./quick/260329-hhx-after-telegram-choice-remove-inline-keyb/) |
 
 ## Session Continuity
 
