@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Telegram bot that acts as a full-featured client for an OpenCode server running at `http://localhost:4096`. It lets allowlisted users interact with OpenCode sessions directly from Telegram — sending messages, managing named sessions, receiving streamed responses rendered as clean HTML, and handling MCP clarification questions interactively.
+A Telegram bot that acts as a full-featured client for an OpenCode server running at `http://localhost:4096`. It lets allowlisted users interact with OpenCode sessions directly from Telegram — sending messages and photos, managing named sessions, receiving streamed responses rendered as clean HTML, and handling MCP clarification questions interactively.
 
 ## Core Value
 
@@ -45,11 +45,17 @@ A Telegram user can start an OpenCode session, send messages, and receive proper
 - [x] MCP questions from OpenCode are surfaced in Telegram — inline keyboards when options are present, free-text reply when open-ended — Validated in Phase 5: MCP Questions & Permissions
 - [x] MCP question answers are relayed back to OpenCode — Validated in Phase 5: MCP Questions & Permissions
 
+### Validated
+
+- [x] Photo messages are downloaded and sent to OpenCode as `prompt_async` file parts; other media types get short “not supported” replies — Validated in Phase 6: Power Features
+- [x] Fresh context via `/new` and session commands; no `/clear` command — Validated in Phase 6: Power Features (FILE-03)
+- [x] Structured pino logging (Telegram updates, OpenCode HTTP/SSE at metadata level, errors) without secrets at default info — Validated in Phase 6: Power Features
+- [x] Minimal `README.md`: install, env table aligned with `.env.example`, run instructions; no external URLs — Validated in Phase 6: Power Features (INFRA-03)
+- [x] `/model` and `/status` stay aligned on displayed model (FILE-02 regression tests) — Validated in Phase 6: Power Features
+
 ### Active
-- [ ] File uploads supported (send file context to OpenCode)
-- [ ] Context management commands
-- [ ] Request/response logging — what came in from Telegram and what went to/from OpenCode
-- [ ] Runs locally (same machine as OpenCode), started with `node` or `npx`
+
+_No open requirements for the v1.0 roadmap; future work starts a new milestone or backlog._
 
 ### Out of Scope
 
@@ -102,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 — Phase 5 (MCP questions & permissions) complete*
+*Last updated: 2026-03-29 — Phase 6 (Power Features) complete; v1.0 roadmap closed*
