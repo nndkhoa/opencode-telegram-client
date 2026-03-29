@@ -103,4 +103,4 @@ None - no external service configuration required.
 
 - `src/bot/handlers/photo.ts` — FOUND
 - `src/bot/handlers/unsupported-media.ts` — FOUND
-- Commits `9ff1afe`, `632f847` — verified in `git log`
+- Commits `9ff1afe`, `632f847`, `5910dfb`, `2fd531a` — verified in `git log`
