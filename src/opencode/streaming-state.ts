@@ -1,6 +1,10 @@
 import type { Api } from "grammy";
 import type { OpenCodeEvent, MessagePartDeltaEvent, SessionIdleEvent } from "./events.js";
-import { renderFinalMessage } from "../rendering/markdown.js";
+import { appendHtmlFooterToChunks, renderFinalMessage } from "../rendering/markdown.js";
+import {
+  formatAssistantFooterHtml,
+  resolveAssistantFooterLines,
+} from "./assistant-meta.js";
 import type { SessionRegistry } from "../session/registry.js";
 
 const THROTTLE_MS = 500;
@@ -24,7 +28,10 @@ export class StreamingStateManager {
   // Exposed as non-private for test access via type assertion
   turns = new Map<string, TurnState>();
 
-  constructor(private registry: SessionRegistry) {}
+  constructor(
+    private registry: SessionRegistry,
+    private openCodeUrl: string
+  ) {}
 
   isBusy(chatId: number): boolean {
     return this.busy.get(chatId) === true;
@@ -95,14 +102,19 @@ export class StreamingStateManager {
       // endTurn BEFORE async work to prevent race with throttled edits
       this.endTurn(sessionID);
 
-      const chunks = renderFinalMessage(rawBuffer);
+      const { modelRef, agentLabel } = await resolveAssistantFooterLines(this.openCodeUrl, sessionID);
+      const footerHtml = formatAssistantFooterHtml(modelRef, agentLabel);
+      let chunks = renderFinalMessage(rawBuffer);
+      chunks = appendHtmlFooterToChunks(chunks, footerHtml);
 
       // Send first chunk by editing the interim message
       try {
-        await bot.editMessageText(chatId, messageId, chunks[0], { parse_mode: "HTML" });
+        await bot.editMessageText(chatId, messageId, chunks[0]!, { parse_mode: "HTML" });
       } catch {
         // D-08: HTML rejected — retry with plain escaped text (no parse_mode)
-        const fallback = escapeHtml(rawBuffer || "(empty response)").slice(0, 4096);
+        const base = escapeHtml(rawBuffer || "(empty response)").slice(0, 4096);
+        const plainFooter = `\n\n${modelRef} · ${agentLabel}`;
+        const fallback = (base + plainFooter).slice(0, 4096);
         bot.editMessageText(chatId, messageId, fallback).catch(() => {});
         return;
       }

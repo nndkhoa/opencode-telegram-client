@@ -44,6 +44,20 @@ function splitHtml(html: string): string[] {
   return chunks;
 }
 
+/** Appends a Telegram-HTML footer to the last chunk, or starts a new chunk if needed. */
+export function appendHtmlFooterToChunks(chunks: string[], footerHtml: string): string[] {
+  if (footerHtml === "") return chunks;
+  if (chunks.length === 0) {
+    return footerHtml.length <= TELEGRAM_MAX_LENGTH ? [footerHtml] : splitHtml(footerHtml);
+  }
+  const last = chunks[chunks.length - 1]!;
+  const combined = `${last}\n\n${footerHtml}`;
+  if (combined.length <= TELEGRAM_MAX_LENGTH) {
+    return [...chunks.slice(0, -1), combined];
+  }
+  return [...chunks, footerHtml];
+}
+
 export function renderFinalMessage(markdown: string): string[] {
   if (!markdown || markdown.trim() === "") {
     return ["(empty response)"];

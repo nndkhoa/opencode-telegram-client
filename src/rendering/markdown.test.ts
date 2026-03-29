@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { renderFinalMessage } from "./markdown.js";
+import { appendHtmlFooterToChunks, renderFinalMessage } from "./markdown.js";
 
 describe("renderFinalMessage", () => {
   it("converts **bold** to <b>bold</b>", () => {
@@ -59,6 +59,19 @@ describe("renderFinalMessage", () => {
     const result = renderFinalMessage("");
     expect(result).toHaveLength(1);
     expect(result[0]).toBe("(empty response)");
+  });
+
+  it("appendHtmlFooterToChunks appends to last chunk when under limit", () => {
+    const out = appendHtmlFooterToChunks(["<p>Hi</p>"], "<i>m · build</i>");
+    expect(out).toEqual(["<p>Hi</p>\n\n<i>m · build</i>"]);
+  });
+
+  it("appendHtmlFooterToChunks starts new chunk when footer would overflow", () => {
+    const footer = "<i>a · b</i>";
+    const big = "x".repeat(4096 - footer.length - 2 + 1);
+    const out = appendHtmlFooterToChunks([big], footer);
+    expect(out.length).toBe(2);
+    expect(out[1]).toBe(footer);
   });
 
   it("splits respecting newline boundary: 4000 'a' + newline + 200 'b' results in first chunk ending at or before the newline", () => {

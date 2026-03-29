@@ -5,7 +5,7 @@ milestone_name: milestone
 status: ready
 stopped_at: Phase 04.2 complete — verification passed
 last_updated: "2026-03-29T06:40:00.000Z"
-last_activity: 2026-03-28
+last_activity: 2026-03-29
 progress:
   total_phases: 8
   completed_phases: 6
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 Phase: 5
 Plan: Not started
 Status: Phase 04.2 complete — ready for Phase 5
-Last activity: 2026-03-29
+Last activity: 2026-03-29 - Completed quick task 260329-cyo: display model and mode (build/plan) at the end of telegram message
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -122,6 +122,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260329-9i9 | Persist chosen model so first message after bot restart uses it when available | 2026-03-29 | — | [260329-9i9-persist-chosen-model-so-first-message-af](./quick/260329-9i9-persist-chosen-model-so-first-message-af/) |
+| 260329-cyo | display model and mode (build/plan) at the end of telegram message | 2026-03-29 | 940d557 | [260329-cyo-display-model-and-mode-build-plan-at-the](./quick/260329-cyo-display-model-and-mode-build-plan-at-the/) |
 
 ## Session Continuity
 

@@ -3,6 +3,11 @@ import { StreamingStateManager } from "./streaming-state.js";
 import type { Api } from "grammy";
 import type { SessionRegistry } from "../session/registry.js";
 
+vi.mock("./assistant-meta.js", () => ({
+  formatAssistantFooterHtml: (m: string, a: string) => `<i>${m} · ${a}</i>`,
+  resolveAssistantFooterLines: vi.fn().mockResolvedValue({ modelRef: "anthropic/x", agentLabel: "build" }),
+}));
+
 function makeMockBot(): Api {
   return {
     editMessageText: vi.fn().mockResolvedValue({}),
@@ -30,7 +35,7 @@ describe("StreamingStateManager", () => {
 
   beforeEach(() => {
     registry = makeMockRegistry();
-    manager = new StreamingStateManager(registry);
+    manager = new StreamingStateManager(registry, "http://localhost:4096");
     bot = makeMockBot();
   });
 
@@ -160,7 +165,7 @@ describe("StreamingStateManager", () => {
 
       expect(bot.editMessageText).toHaveBeenCalledWith(
         123, 456,
-        expect.stringContaining("Final answer"),
+        expect.stringMatching(/Final answer[\s\S]*<i>anthropic\/x · build<\/i>/),
         { parse_mode: "HTML" }
       );
       expect(manager.isBusy(123)).toBe(false);
@@ -181,7 +186,10 @@ describe("StreamingStateManager", () => {
       await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_abc" } }, bot);
 
       expect(bot.editMessageText).toHaveBeenCalledWith(
-        123, 456, "(empty response)", { parse_mode: "HTML" }
+        123,
+        456,
+        expect.stringMatching(/\(empty response\)[\s\S]*<i>anthropic\/x · build<\/i>/),
+        { parse_mode: "HTML" }
       );
     });
 

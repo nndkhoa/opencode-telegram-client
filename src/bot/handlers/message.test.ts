@@ -55,7 +55,7 @@ describe("makeMessageHandler", () => {
 
   beforeEach(() => {
     registry = makeMockRegistry();
-    manager = new StreamingStateManager(registry);
+    manager = new StreamingStateManager(registry, openCodeUrl);
     vi.mocked(sendPromptAsync).mockResolvedValue(undefined);
   });
 

@@ -15,7 +15,7 @@ async function main(): Promise<void> {
 
   // Step 2: Create shared session registry + streaming state manager
   const registry = new SessionRegistry();
-  const manager = new StreamingStateManager(registry);
+  const manager = new StreamingStateManager(registry, config.openCodeUrl);
 
   // Step 3: Create bot with registry and manager injected
   const bot = createBot(registry, manager);
