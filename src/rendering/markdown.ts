@@ -2,9 +2,23 @@ import { lexer, marked, walkTokens } from "marked";
 import type { Parser, Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
 
+/** Telegram has no `<ul>`/`<ol>`/`<li>`; we render one line per item with `<br>`. */
+const LIST_BULLET_EMOJI = "🔹 ";
+
+/** Keycap digits 1–9 (U+0031–0039, FE0F, 20E3); 10 uses U+1F51F. After 10, fall back to `n.` */
+function orderedListPrefix(index: number): string {
+  if (index >= 1 && index <= 9) {
+    return `${String.fromCharCode(0x30 + index)}\uFE0F\u20E3 `;
+  }
+  if (index === 10) {
+    return "🔟 ";
+  }
+  return `${index}. `;
+}
+
 /**
  * Telegram HTML does not support `<ul>` / `<ol>` / `<li>`; sanitize-html drops them and list markers vanish.
- * Render lists as plain lines with `•` / `1.` and `<br>` (GFM task items use ☐/☑ via checkbox renderer).
+ * Render lists with emoji markers + `<br>` (GFM task items use ☐/☑ via checkbox renderer).
  */
 marked.use({
   renderer: {
@@ -17,10 +31,10 @@ marked.use({
       for (const item of token.items) {
         const inner = this.parser.parse(item.tokens).trim();
         if (item.task) {
-          const prefix = token.ordered ? `${n++}. ` : "";
+          const prefix = token.ordered ? orderedListPrefix(n++) : "";
           rows.push(prefix + inner);
         } else {
-          const prefix = token.ordered ? `${n++}. ` : "• ";
+          const prefix = token.ordered ? orderedListPrefix(n++) : LIST_BULLET_EMOJI;
           rows.push(prefix + inner);
         }
       }
@@ -52,7 +66,7 @@ function normalizeTags(html: string): string {
 
 /**
  * GFM pipes render to `<table>`, which we strip for Telegram HTML; Telegram has no table layout.
- * Keep the aligned pipe text as a fenced block → `<pre><code>` (monospace), readable in chat.
+ * Keep the aligned pipe text as a fenced block → `<pre><code>` (monospace), with a 📊 label line.
  */
 function markdownTablesToFencedCode(markdown: string): string {
   const tables: Tokens.Table[] = [];
@@ -66,10 +80,18 @@ function markdownTablesToFencedCode(markdown: string): string {
     const idx = out.lastIndexOf(t.raw);
     if (idx === -1) continue;
     const body = t.raw.trimEnd();
-    const replacement = "```\n" + body + "\n```";
+    const replacement = "📊\n```\n" + body + "\n```";
     out = out.slice(0, idx) + replacement + out.slice(idx + t.raw.length);
   }
   return out;
+}
+
+/** `<p>` is not Telegram HTML; flatten to explicit `<br><br>` before sanitize. */
+function flattenParagraphs(html: string): string {
+  return html
+    .replace(/<\/p>\s*<p>/gi, "<br><br>")
+    .replace(/^<p>/i, "")
+    .replace(/<\/p>$/i, "");
 }
 
 function splitHtml(html: string): string[] {
@@ -114,8 +136,9 @@ export function renderFinalMessage(markdown: string): string[] {
   }
 
   const rawHtml = marked(markdownTablesToFencedCode(markdown)) as string;
+  const withBreaks = flattenParagraphs(rawHtml);
 
-  const sanitized = sanitizeHtml(rawHtml, {
+  const sanitized = sanitizeHtml(withBreaks, {
     allowedTags: [
       "b",
       "strong",

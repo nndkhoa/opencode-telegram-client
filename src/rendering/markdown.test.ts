@@ -30,6 +30,7 @@ describe("renderFinalMessage", () => {
     const md = "| a | b |\n|---|---|\n| 1 | 2 |";
     const result = renderFinalMessage(md);
     expect(result).toHaveLength(1);
+    expect(result[0]).toContain("📊");
     expect(result[0]).toContain("<pre>");
     expect(result[0]).toContain("| a | b |");
     expect(result[0]).not.toContain("<table");
@@ -41,21 +42,28 @@ describe("renderFinalMessage", () => {
     expect(result[0]).toContain('<a href="https://x.com"');
   });
 
-  it("renders GFM bullet lists with • and <br> (Telegram HTML has no ul/li)", () => {
+  it("renders GFM bullet lists with emoji marker and <br> (Telegram HTML has no ul/li)", () => {
     const result = renderFinalMessage("- alpha\n- beta");
     expect(result).toHaveLength(1);
-    expect(result[0]).toContain("•");
-    expect(result[0]).toMatch(/•[^<]*alpha/);
-    expect(result[0]).toMatch(/•[^<]*beta/);
+    expect(result[0]).toContain("🔹");
+    expect(result[0]).toMatch(/🔹[^<]*alpha/);
+    expect(result[0]).toMatch(/🔹[^<]*beta/);
     expect(result[0]).toMatch(/<br\s*\/?>/);
   });
 
-  it("renders ordered lists with numbers and <br>", () => {
+  it("renders ordered lists with keycap emoji and <br>", () => {
     const result = renderFinalMessage("1. first\n2. second");
     expect(result).toHaveLength(1);
-    expect(result[0]).toContain("1.");
-    expect(result[0]).toContain("2.");
+    expect(result[0]).toContain("1️⃣");
+    expect(result[0]).toContain("2️⃣");
     expect(result[0]).toMatch(/<br\s*\/?>/);
+  });
+
+  it("flattens paragraphs to double <br> (Telegram HTML has no <p>)", () => {
+    const result = renderFinalMessage("one para\n\ntwo para");
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatch(/<br\s*\/?>\s*<br\s*\/?>/);
+    expect(result[0]).not.toContain("<p>");
   });
 
   it("splits string of 5000 'a' chars separated by newlines into multiple chunks ≤ 4096", () => {
