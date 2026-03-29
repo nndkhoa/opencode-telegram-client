@@ -53,7 +53,7 @@
 
 - [x] **FILE-01**: User can send a **photo** to the bot and it is forwarded as context to the active OpenCode session (documents deferred per D-01)
 - [x] **FILE-02**: User can switch the active model via `/model <name>` (calls OpenCode config API)
-- [ ] **FILE-03**: User can clear the current session context via `/clear`
+- [x] **FILE-03**: User can start fresh context via **`/new <name>`** (named session) or equivalent session flow — **not** a dedicated **`/clear`** command (per Phase 6 CONTEXT, D-05)
 
 ### Logging
 
@@ -67,7 +67,7 @@
 
 - [x] **INFRA-01**: Project is TypeScript with strict mode enabled
 - [x] **INFRA-02**: Configuration (bot token, allowlist, OpenCode URL) is loaded from environment variables / `.env` file
-- [ ] **INFRA-03**: `README.md` documents setup, configuration, and how to run
+- [x] **INFRA-03**: `README.md` documents setup, configuration, and how to run
 - [x] **INFRA-04**: Bot connects to OpenCode via a single shared SSE connection (`GET /event`) and routes events by session ID
 
 ## v2 Requirements
@@ -132,13 +132,13 @@
 | MCP-06 | Phase 5 | Complete |
 | FILE-01 | Phase 6 | Complete |
 | FILE-02 | Phase 6 | Complete |
-| FILE-03 | Phase 6 | Pending |
+| FILE-03 | Phase 6 | Complete |
 | LOG-01 | Phase 6 | Complete |
 | LOG-02 | Phase 6 | Complete |
 | LOG-03 | Phase 6 | Complete |
 | LOG-04 | Phase 6 | Complete |
 | LOG-05 | Phase 6 | Complete |
-| INFRA-03 | Phase 6 | Pending |
+| INFRA-03 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 38 total
@@ -147,4 +147,4 @@
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-29 — Phase 6 FILE-03, INFRA-03 wording and traceability*

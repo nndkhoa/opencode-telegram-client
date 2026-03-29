@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Rendering Pipeline** - Markdown→HTML, message splitting, clean final message (completed 2026-03-28)
 - [x] **Phase 4: Session Commands** - Full session registry + all bot commands (/new, /switch, /sessions, /status, /cancel, /help) (completed 2026-03-28)
 - [x] **Phase 5: MCP Questions & Permissions** - Inline keyboards for question.asked and permission.asked events (completed 2026-03-29)
-- [ ] **Phase 6: Power Features** - File uploads, model switching, context clear, structured pino logging, README
+- [x] **Phase 6: Power Features** - Photo uploads to OpenCode, model switching, fresh context via `/new` (no `/clear`), structured pino logging, minimal README (completed 2026-03-29)
 
 ## Phase Details
 
@@ -125,17 +125,22 @@ Plans:
 - [x] 05-03-PLAN.md — Awaiting free-text path, command clears pending, integration tests
 
 ### Phase 6: Power Features
-**Goal**: Users can send files, switch models, clear context, and all activity is structured-logged
+**Goal**: Users can send **photos** to OpenCode (v1), switch models, start fresh context via **`/new`** (no **`/clear`** per CONTEXT), and all activity is structured-logged with a minimal README
 **Depends on**: Phase 5
 **Requirements**: FILE-01, FILE-02, FILE-03, LOG-01, LOG-02, LOG-03, LOG-04, LOG-05, INFRA-03
 **Success Criteria** (what must be TRUE):
-  1. Sending a document to the bot forwards it as context to the active OpenCode session
-  2. `/model <name>` switches the active model via the OpenCode config API (confirmed in /status output)
-  3. `/clear` clears the current session context
+  1. Sending a **photo** to the bot forwards it as context to the active OpenCode session (documents deferred per D-01)
+  2. `/model <name>` switches the active model via the OpenCode config API (confirmed in `/status` output)
+  3. Fresh context is achieved via **`/new <name>`** and session commands — **no** dedicated **`/clear`** command (D-05)
   4. All incoming messages, outgoing OpenCode requests, and responses are logged as structured JSON (pino)
   5. Running in dev mode shows human-readable log output; production emits JSON
-  6. `README.md` documents setup, required env vars, and how to run the bot
-**Plans**: 1/3 plans executed
+  6. `README.md` documents setup, required env vars, and how to run (no external URLs; no troubleshooting or `logs/` documentation per INFRA-03 / CONTEXT)
+**Plans**: 3/3 plans executed
+
+Plans:
+- [x] 06-01-PLAN.md — Structured pino logging (stdout + daily `logs/`), Telegram/OpenCode/SSE log lines
+- [x] 06-02-PLAN.md — Photo → OpenCode `prompt_async`; unsupported media replies; busy/MCP guards
+- [x] 06-03-PLAN.md — Minimal README; REQUIREMENTS/ROADMAP alignment; FILE-02 `/model` vs `/status` tests
 
 ## Progress
 
@@ -149,4 +154,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
 | 5. MCP Questions & Permissions | 3/3 | Complete   | 2026-03-29 |
-| 6. Power Features | 1/3 | In Progress   | - |
+| 6. Power Features | 3/3 | Complete   | 2026-03-29 |
