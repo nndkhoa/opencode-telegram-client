@@ -3,6 +3,7 @@ import { config } from "../config/env.js";
 import { logger } from "../logger.js";
 import { dmOnlyMiddleware } from "./middleware/dm-only.js";
 import { allowlistMiddleware } from "./middleware/allowlist.js";
+import { telegramLogMiddleware } from "./middleware/telegram-log.js";
 import { makeMessageHandler } from "./handlers/message.js";
 import { makeCmdNewHandler } from "./handlers/cmd-new.js";
 import { makeCmdSwitchHandler } from "./handlers/cmd-switch.js";
@@ -24,9 +25,10 @@ export function createBot(
 ): Bot {
   const bot = new Bot(config.botToken);
 
-  // Middleware order: DM gate → allowlist → feature handlers (per D-04)
+  // Middleware order: DM gate → allowlist → telegram log (allowed only) → handlers
   bot.use(dmOnlyMiddleware);
   bot.use(allowlistMiddleware(config.allowedUserIds));
+  bot.use(telegramLogMiddleware);
 
   // Commands must be registered before the catch-all message:text handler,
   // otherwise bot.on("message:text") intercepts command messages first.
