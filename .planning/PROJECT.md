@@ -8,6 +8,14 @@ A Telegram bot that acts as a full-featured client for an OpenCode server runnin
 
 A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
 
+## Current State
+
+**v1.0 MVP** shipped 2026-03-29. The bot runs locally against OpenCode at `http://localhost:4096`, uses a shared SSE connection, supports named sessions and the full command set, renders markdown to Telegram-safe HTML, surfaces MCP questions and permissions in chat, accepts photos as session input, switches models via `/model`, and logs with pino (stdout + rotating `logs/`). Requirements and roadmap for this release are archived under `.planning/milestones/v1.0-*.md`.
+
+## Next Milestone Goals
+
+_Not chosen yet._ Use `/gsd-new-milestone` to define requirements and roadmap. Likely themes from the archived v2 parking lot include session persistence across restarts, webhook mode, and richer queueing while streaming.
+
 ## Requirements
 
 ### Validated
@@ -65,11 +73,11 @@ _No open requirements for the v1.0 roadmap; future work starts a new milestone o
 
 ## Context
 
-- OpenCode server exposes an HTTP API at `localhost:4096` — API shape needs to be researched during planning (user is unfamiliar with it)
-- OpenCode likely uses SSE (Server-Sent Events) for streaming responses
-- OpenCode has an `mcp_question` event type that requires user input mid-session
-- Telegram Bot API supports HTML parse mode — markdown must be converted to HTML (not raw markdown)
-- TypeScript/Node.js stack chosen for strong typing and ecosystem fit
+- **Stack:** TypeScript (ESM, strict), Node.js, grammY, Vitest, marked + sanitize-html, pino
+- OpenCode HTTP API at `localhost:4096` — health, `prompt_async`, session lifecycle, config for models; SSE at `GET /event` for streaming and interactive events
+- MCP `question.asked` / `permission.asked` surfaced with inline keyboards and POST replies to OpenCode
+- Telegram HTML parse mode — markdown converted and sanitized before send; long messages split at 4096 characters
+- Local-only deployment; allowlist enforced by Telegram user ID
 
 ## Constraints
 
@@ -89,6 +97,8 @@ _No open requirements for the v1.0 roadmap; future work starts a new milestone o
 | Per-chat default session + named sessions | Covers both casual use and multi-project workflows | Confirmed — SessionRegistry with getOrCreateDefault, createNamed, switchTo |
 | Commands before catch-all message handler | grammY routes in registration order; bot.command() must precede bot.on("message:text") | Confirmed — fixed in Phase 04 UAT |
 | Native Node fetch for SSE | @microsoft/fetch-event-source is browser-only (references window) — replaced with built-in fetch + ReadableStream | Confirmed |
+| MCP interactive UX | Inline keyboards + POST `/question` and `/permission` reply routes; pending state cleared on cancel/switch/new | Confirmed — shipped v1.0 |
+| Photo → OpenCode | Telegram photo bytes as data URL `file` part on `prompt_async` | Confirmed — shipped v1.0 |
 
 ## Evolution
 
@@ -108,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-03-29 — Phase 6 (Power Features) complete; v1.0 roadmap closed*
+*Last updated: 2026-03-29 after v1.0 MVP milestone archived and tagged*

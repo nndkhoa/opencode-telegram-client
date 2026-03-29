@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
+milestone_name: MVP
 status: complete
-stopped_at: Phase 6 verified — v1.0 roadmap complete
-last_updated: "2026-03-29T18:00:00.000Z"
+stopped_at: v1.0 MVP shipped and archived — planning next milestone
+last_updated: "2026-03-29T19:00:00.000Z"
 last_activity: 2026-03-29
 progress:
   total_phases: 8
@@ -18,16 +18,16 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-29)
+See: .planning/PROJECT.md (updated 2026-03-29 after v1.0 archive)
 
 **Core value:** A Telegram user can start an OpenCode session, send messages, and receive properly formatted streaming responses — as if they were using OpenCode directly.
-**Current focus:** v1.0 roadmap complete (Phase 6 verified)
+**Current focus:** Planning the next milestone — run `/gsd-new-milestone` when ready
 
 ## Current Position
 
-Phase: 06 — power-features (complete)
-Plan: 3/3 — verification approved
-Status: Phase 6 closed; all roadmap phases done for milestone v1.0
+Milestone: **v1.0 MVP** — complete and archived (2026-03-29)  
+Phase: none active  
+Status: Roadmap collapsed; `.planning/REQUIREMENTS.md` removed pending new milestone  
 Last activity: 2026-03-29
 
 Progress: [██████████] 100%
