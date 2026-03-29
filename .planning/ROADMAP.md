@@ -121,7 +121,7 @@ Plans:
 
 Plans:
 - [x] 05-01-PLAN.md — SSE types, PendingInteractiveState, POST question/permission reply clients
-- [ ] 05-02-PLAN.md — SSE interactive dispatch, inline keyboards, callback_query → OpenCode replies
+- [x] 05-02-PLAN.md — SSE interactive dispatch, inline keyboards, callback_query → OpenCode replies
 - [ ] 05-03-PLAN.md — Awaiting free-text path, command clears pending, integration tests
 
 ### Phase 6: Power Features
@@ -148,5 +148,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Minimal Telegram Loop | 3/3 | Complete   | 2026-03-28 |
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
-| 5. MCP Questions & Permissions | 1/3 | In Progress|  |
+| 5. MCP Questions & Permissions | 2/3 | In Progress|  |
 | 6. Power Features | 0/TBD | Not started | - |
