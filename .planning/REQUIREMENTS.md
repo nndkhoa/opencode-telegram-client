@@ -51,7 +51,7 @@
 
 ### Files & Context
 
-- [ ] **FILE-01**: User can send a file (document) to the bot and it is forwarded as context to the active OpenCode session
+- [x] **FILE-01**: User can send a file (document) to the bot and it is forwarded as context to the active OpenCode session
 - [x] **FILE-02**: User can switch the active model via `/model <name>` (calls OpenCode config API)
 - [ ] **FILE-03**: User can clear the current session context via `/clear`
 
@@ -130,7 +130,7 @@
 | MCP-04 | Phase 5 | Complete |
 | MCP-05 | Phase 5 | Complete |
 | MCP-06 | Phase 5 | Complete |
-| FILE-01 | Phase 6 | Pending |
+| FILE-01 | Phase 6 | Complete |
 | FILE-02 | Phase 6 | Complete |
 | FILE-03 | Phase 6 | Pending |
 | LOG-01 | Phase 6 | Complete |
