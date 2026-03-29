@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { patchConfig, getConfigProviders, getConfig } from "./config.js";
+import {
+  patchConfig,
+  getConfigProviders,
+  getConfig,
+  extractConfiguredModel,
+  defaultModelRefsFromPayload,
+  parseModelRefToBodyModel,
+} from "./config.js";
 
 describe("patchConfig", () => {
   beforeEach(() => { vi.clearAllMocks(); });
@@ -25,18 +32,107 @@ describe("patchConfig", () => {
 });
 
 describe("getConfigProviders", () => {
-  it("resolves provider map on ok response", async () => {
-    const providers = {
-      anthropic: { id: "anthropic", name: "Anthropic", models: { "claude-sonnet-4": { id: "claude-sonnet-4", providerID: "anthropic", name: "Claude Sonnet 4", status: "active" } } },
+  it("resolves { providers, default } from OpenCode on ok response", async () => {
+    const body = {
+      providers: [
+        {
+          id: "anthropic",
+          name: "Anthropic",
+          models: {
+            "claude-sonnet-4": {
+              id: "claude-sonnet-4",
+              providerID: "anthropic",
+              name: "Claude Sonnet 4",
+              status: "active",
+            },
+          },
+        },
+      ],
+      default: { anthropic: "claude-sonnet-4" },
     };
-    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(providers) }) as any;
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(body) }) as any;
     const result = await getConfigProviders("http://localhost:4096");
-    expect(result).toEqual(providers);
+    expect(result.providers).toHaveLength(1);
+    expect(result.providers[0].id).toBe("anthropic");
+    expect(result.default).toEqual({ anthropic: "claude-sonnet-4" });
+  });
+
+  it("accepts legacy map of provider id -> provider on ok response", async () => {
+    const legacy = {
+      anthropic: {
+        id: "anthropic",
+        name: "Anthropic",
+        models: {
+          "claude-sonnet-4": {
+            id: "claude-sonnet-4",
+            providerID: "anthropic",
+            name: "Claude Sonnet 4",
+            status: "active",
+          },
+        },
+      },
+    };
+    global.fetch = vi.fn().mockResolvedValue({ ok: true, json: vi.fn().mockResolvedValue(legacy) }) as any;
+    const result = await getConfigProviders("http://localhost:4096");
+    expect(result.providers).toHaveLength(1);
+    expect(result.providers[0].name).toBe("Anthropic");
+    expect(result.default).toEqual({});
   });
 
   it("throws on non-ok response", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 503 }) as any;
     await expect(getConfigProviders("http://localhost:4096")).rejects.toThrow("GET /config/providers failed: HTTP 503");
+  });
+});
+
+describe("parseModelRefToBodyModel", () => {
+  it("splits provider/model on first slash", () => {
+    expect(parseModelRefToBodyModel("github-copilot/gpt-5-mini")).toEqual({
+      providerID: "github-copilot",
+      modelID: "gpt-5-mini",
+    });
+  });
+
+  it("returns undefined when no slash", () => {
+    expect(parseModelRefToBodyModel("gpt-4o")).toBeUndefined();
+  });
+});
+
+describe("extractConfiguredModel", () => {
+  it("reads top-level model", () => {
+    expect(extractConfiguredModel({ model: "openai/gpt-4o" })).toBe("openai/gpt-4o");
+  });
+
+  it("reads agent.build.model when top-level missing", () => {
+    expect(
+      extractConfiguredModel({
+        agent: { build: { model: "anthropic/claude-sonnet-4" } },
+      })
+    ).toBe("anthropic/claude-sonnet-4");
+  });
+
+  it("returns undefined when absent", () => {
+    expect(extractConfiguredModel({})).toBeUndefined();
+    expect(extractConfiguredModel(null)).toBeUndefined();
+  });
+});
+
+describe("defaultModelRefsFromPayload", () => {
+  it("builds provider/model refs from default map", () => {
+    const refs = defaultModelRefsFromPayload({
+      providers: [],
+      default: { anthropic: "claude-3", openai: "gpt-4o" },
+    });
+    expect(refs).toEqual(["anthropic/claude-3", "openai/gpt-4o"]);
+  });
+
+  it("passes through already-qualified ids", () => {
+    expect(
+      defaultModelRefsFromPayload({
+        providers: [],
+        default: { x: "vendor/full/model-name" },
+      })
+    ).toEqual(["vendor/full/model-name"]);
   });
 });
 

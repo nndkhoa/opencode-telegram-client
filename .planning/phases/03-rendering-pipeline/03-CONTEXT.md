@@ -24,7 +24,7 @@ Requirements in scope: MSG-05, MSG-06
 - **D-04:** The `⏳ Thinking...\n\n{buffer}` interim format continues as-is from Phase 2. No changes to streaming behavior.
 
 ### Message Splitting
-- **D-05:** Split on the **raw markdown buffer** before HTML conversion (pre-conversion split). Each chunk is converted independently. This eliminates any risk of splitting mid-HTML-tag.
+- **D-05:** Split on the **converted HTML output** after full markdown→HTML conversion (post-conversion split). The full markdown is converted once, then the resulting HTML string is split at safe boundaries. This avoids mid-markdown-construct cuts (e.g. splitting inside a fenced code block or a link). *(Originally specified as pre-conversion split; updated to post-conversion split — the risk of splitting mid-HTML-tag is handled by the newline-boundary split rule in D-06, which ensures splits only occur at whitespace boundaries, never mid-tag.)*
 - **D-06:** Split boundary: walk backwards from char 4096 to find the nearest `\n`. If no newline is found within a reasonable lookback window (e.g. 200 chars), split at the hard limit as a last resort.
 - **D-07:** All split chunks are sent as separate Telegram messages in sequence. The first chunk replaces the interim message (`editMessageText`); subsequent chunks are sent as new messages (`sendMessage`).
 
@@ -83,7 +83,7 @@ Requirements in scope: MSG-05, MSG-06
 <specifics>
 ## Specific Ideas
 
-- Pre-conversion split (markdown → chunks → each chunk converted) was explicitly chosen over post-conversion split to avoid mid-HTML-tag boundary issues.
+- Post-conversion split (convert full markdown → HTML first, then split the HTML at newline boundaries) was chosen over pre-conversion split to avoid mid-markdown-construct cuts. The newline-boundary split rule (D-06) ensures splits only occur at whitespace, not mid-tag.
 - Silent fallback on HTML failure (D-08) was chosen over surfacing an error — content availability over formatting fidelity.
 - `marked` + `sanitize-html` confirmed as the library pair (not `telegramify-markdown` or custom converter).
 

@@ -28,7 +28,7 @@ function makeCtx(overrides: {
     answerCallbackQuery,
     api: {
       editMessageText: vi.fn().mockResolvedValue({}),
-      editMessageReplyMarkup: vi.fn().mockResolvedValue({}),
+      deleteMessage: vi.fn().mockResolvedValue(true),
     },
   };
 }
@@ -61,9 +61,7 @@ describe("makeCallbackInteractiveHandler", () => {
     await handler(ctx as never);
 
     expect(postPermissionReply).toHaveBeenCalledWith(openCodeUrl, "perm-req", { reply: "once" });
-    expect(ctx.api.editMessageReplyMarkup).toHaveBeenCalledWith(100, 50, {
-      reply_markup: expect.objectContaining({ inline_keyboard: [] }),
-    });
+    expect(ctx.api.deleteMessage).toHaveBeenCalledWith(100, 50);
     expect(pending.get(100)).toBeUndefined();
     expect(answerCallbackQuery).toHaveBeenCalledTimes(1);
   });
@@ -92,9 +90,7 @@ describe("makeCallbackInteractiveHandler", () => {
     expect(postQuestionReply).toHaveBeenCalledWith(openCodeUrl, "q-req", {
       answers: [["Alpha"]],
     });
-    expect(ctx.api.editMessageReplyMarkup).toHaveBeenCalledWith(100, 51, {
-      reply_markup: expect.objectContaining({ inline_keyboard: [] }),
-    });
+    expect(ctx.api.deleteMessage).toHaveBeenCalledWith(100, 51);
     expect(pending.get(100)).toBeUndefined();
     expect(answerCallbackQuery).toHaveBeenCalledTimes(1);
   });

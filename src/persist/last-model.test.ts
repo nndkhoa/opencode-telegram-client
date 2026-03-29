@@ -52,4 +52,10 @@ describe("last-model", () => {
     await ensurePersistedModelApplied("http://localhost:4096");
     expect(patchConfig).not.toHaveBeenCalled();
   });
+
+  it("getPersistedModelRef returns model from file", async () => {
+    writeFileSync(statePath, JSON.stringify({ model: "p/q" }));
+    const { getPersistedModelRef } = await import("./last-model.js");
+    expect(getPersistedModelRef()).toBe("p/q");
+  });
 });

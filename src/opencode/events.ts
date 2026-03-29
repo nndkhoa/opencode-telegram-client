@@ -21,6 +21,16 @@ export type SessionIdleEvent = {
   };
 };
 
+/** Bus event: part created/updated — use `part.type` to tell reasoning vs text (`message.part.delta` uses `field: "text"` for both). */
+export type MessagePartUpdatedEvent = {
+  type: "message.part.updated";
+  properties: {
+    sessionID: string;
+    part: { id: string; type: string };
+    time: number;
+  };
+};
+
 /** One option row for a structured question (SDK: QuestionOption). */
 export type QuestionOption = {
   label: string;
@@ -96,6 +106,7 @@ export type PermissionRepliedEvent = {
 
 export type OpenCodeEvent =
   | MessagePartDeltaEvent
+  | MessagePartUpdatedEvent
   | SessionIdleEvent
   | QuestionAskedEvent
   | PermissionAskedEvent

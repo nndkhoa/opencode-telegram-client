@@ -37,6 +37,15 @@ function readDisk(): string | undefined {
   return diskRead;
 }
 
+/**
+ * Model from the last successful `/model` (written to `data/last-model.json`).
+ * Prefer this over `GET /config` for prompts and `/status`: OpenCode may still report
+ * an older effective model (e.g. `agent.build.model`) after `PATCH /config`.
+ */
+export function getPersistedModelRef(): string | undefined {
+  return readDisk();
+}
+
 export function savePersistedModel(model: string): void {
   const trimmed = model.trim();
   const p = path();

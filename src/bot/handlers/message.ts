@@ -46,7 +46,11 @@ export function makeMessageHandler(
       try {
         const answers = buildFreeTextQuestionAnswers(text, rec.questionInfos);
         await postQuestionReply(openCodeUrl, rec.requestID, { answers });
+        const promptMid = rec.telegramMessageId;
         pending.clear(chatId);
+        if (promptMid !== undefined) {
+          await ctx.api.deleteMessage(chatId, promptMid).catch(() => {});
+        }
         await ctx.reply("✅ Answer sent.");
         logger.info({ chatId, requestID: rec.requestID }, "Free-text question reply posted");
       } catch (err) {

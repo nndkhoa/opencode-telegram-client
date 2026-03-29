@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
+vi.mock("../persist/last-model.js", () => ({
+  getPersistedModelRef: vi.fn(() => undefined),
+}));
+
 import { resolveDisplayModel } from "./display-model.js";
+import { getPersistedModelRef } from "../persist/last-model.js";
 
 vi.mock("./config.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./config.js")>();
@@ -19,6 +25,23 @@ describe("resolveDisplayModel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     global.fetch = vi.fn();
+    vi.mocked(getPersistedModelRef).mockReturnValue(undefined);
+  });
+
+  it("persisted /model wins over GET /config and session messages", async () => {
+    vi.mocked(getPersistedModelRef).mockReturnValue("github-copilot/gpt-5-mini");
+    mockGetConfig.mockResolvedValue({ model: "google/gemini-flash-latest" });
+    vi.mocked(global.fetch).mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue([
+        { info: { role: "assistant", modelID: "gemini-flash-latest", providerID: "google" } },
+      ]),
+    } as never);
+
+    const result = await resolveDisplayModel(baseUrl, "sess-1");
+    expect(result).toEqual({ kind: "resolved", ref: "github-copilot/gpt-5-mini" });
+    expect(mockGetConfig).not.toHaveBeenCalled();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it("config-only: resolves from GET /config without fetching session messages", async () => {

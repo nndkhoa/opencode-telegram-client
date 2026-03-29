@@ -59,6 +59,7 @@ function makeCtx(overrides: Partial<{
     replyWithChatAction: vi.fn().mockResolvedValue({}),
     api: {
       editMessageText: vi.fn().mockResolvedValue({}),
+      deleteMessage: vi.fn().mockResolvedValue(true),
     },
   };
 }
@@ -189,6 +190,7 @@ describe("makeMessageHandler", () => {
       realPending.setQuestionAsked(100, {
         requestID: "req-1",
         sessionID: "ses-a",
+        telegramMessageId: 200,
         questionInfos: [{ question: "q", header: "", options: [] }],
         awaitingFreeText: true,
       });
@@ -198,6 +200,7 @@ describe("makeMessageHandler", () => {
       expect(postQuestionReply).toHaveBeenCalledWith(openCodeUrl, "req-1", {
         answers: [["my answer"]],
       });
+      expect(ctx.api.deleteMessage).toHaveBeenCalledWith(100, 200);
       expect(realPending.get(100)).toBeUndefined();
       expect(ctx.reply).toHaveBeenCalledWith("✅ Answer sent.");
       expect(sendPromptAsync).not.toHaveBeenCalled();

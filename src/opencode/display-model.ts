@@ -1,5 +1,6 @@
 import { extractConfiguredModel, getConfig } from "./config.js";
 import { logger } from "../logger.js";
+import { getPersistedModelRef } from "../persist/last-model.js";
 
 export type ResolveDisplayModelResult = { kind: "resolved"; ref: string } | { kind: "unset" };
 
@@ -14,12 +15,18 @@ function refFromAssistantMessage(info: {
 }
 
 /**
- * Resolves which model ref to show: GET /config first, then recent session messages (D-01).
+ * Resolves which model ref to show: Telegram-persisted `/model` choice, then GET /config,
+ * then recent session messages (D-01).
  */
 export async function resolveDisplayModel(
   baseUrl: string,
   sessionId: string | undefined
 ): Promise<ResolveDisplayModelResult> {
+  const persisted = getPersistedModelRef();
+  if (persisted) {
+    return { kind: "resolved", ref: persisted };
+  }
+
   try {
     const cfg = await getConfig(baseUrl);
     const fromConfig = extractConfiguredModel(cfg);
