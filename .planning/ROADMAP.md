@@ -135,7 +135,7 @@ Plans:
   4. All incoming messages, outgoing OpenCode requests, and responses are logged as structured JSON (pino)
   5. Running in dev mode shows human-readable log output; production emits JSON
   6. `README.md` documents setup, required env vars, and how to run the bot
-**Plans**: TBD
+**Plans**: 1/3 plans executed
 
 ## Progress
 
@@ -149,4 +149,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Rendering Pipeline | 2/2 | Complete   | 2026-03-28 |
 | 4. Session Commands | 4/4 | Complete   | 2026-03-28 |
 | 5. MCP Questions & Permissions | 3/3 | Complete   | 2026-03-29 |
-| 6. Power Features | 0/TBD | Not started | - |
+| 6. Power Features | 1/3 | In Progress   | - |

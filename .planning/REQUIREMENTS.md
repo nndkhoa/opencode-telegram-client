@@ -57,11 +57,11 @@
 
 ### Logging
 
-- [ ] **LOG-01**: All incoming Telegram messages are logged (user ID, chat ID, message type, timestamp)
-- [ ] **LOG-02**: All outgoing requests to OpenCode are logged (endpoint, session ID, timestamp)
-- [ ] **LOG-03**: All responses/events from OpenCode are logged (event type, session ID, summary, timestamp)
-- [ ] **LOG-04**: Errors from Telegram API and OpenCode API are logged with context
-- [ ] **LOG-05**: Logs are structured JSON (pino) with human-readable console output in dev mode
+- [x] **LOG-01**: All incoming Telegram messages are logged (user ID, chat ID, message type, timestamp)
+- [x] **LOG-02**: All outgoing requests to OpenCode are logged (endpoint, session ID, timestamp)
+- [x] **LOG-03**: All responses/events from OpenCode are logged (event type, session ID, summary, timestamp)
+- [x] **LOG-04**: Errors from Telegram API and OpenCode API are logged with context
+- [x] **LOG-05**: Logs are structured JSON (pino) with human-readable console output in dev mode
 
 ### Infrastructure
 
@@ -133,11 +133,11 @@
 | FILE-01 | Phase 6 | Pending |
 | FILE-02 | Phase 6 | Complete |
 | FILE-03 | Phase 6 | Pending |
-| LOG-01 | Phase 6 | Pending |
-| LOG-02 | Phase 6 | Pending |
-| LOG-03 | Phase 6 | Pending |
-| LOG-04 | Phase 6 | Pending |
-| LOG-05 | Phase 6 | Pending |
+| LOG-01 | Phase 6 | Complete |
+| LOG-02 | Phase 6 | Complete |
+| LOG-03 | Phase 6 | Complete |
+| LOG-04 | Phase 6 | Complete |
+| LOG-05 | Phase 6 | Complete |
 | INFRA-03 | Phase 6 | Pending |
 
 **Coverage:**
