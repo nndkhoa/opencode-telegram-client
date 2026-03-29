@@ -9,6 +9,13 @@ function isOpenCodeSseVerbose(): boolean {
 
 const MAX_VERBOSE_DELTA_LOG_CHARS = 8_000;
 
+/** OpenCode may emit frequent keep-alive JSON events — avoid info-level log spam. */
+function shouldLogSseEventAtInfo(eventType: string): boolean {
+  const t = eventType.toLowerCase();
+  if (t === "heartbeat" || t === "ping" || t.endsWith(".heartbeat")) return false;
+  return true;
+}
+
 /** Avoid huge log lines; keep structure for `message.part.delta`. */
 function openCodeEventForVerboseLog(event: OpenCodeEvent): unknown {
   if (event.type !== "message.part.delta") return event;
@@ -67,7 +74,9 @@ async function readSseStream(
         if (event) {
           const props = "properties" in event ? event.properties : undefined;
           const sessionID = (props as { sessionID?: string } | undefined)?.sessionID;
-          logger.info({ eventType: event.type, sessionID }, "OpenCode SSE event");
+          if (shouldLogSseEventAtInfo(event.type)) {
+            logger.info({ eventType: event.type, sessionID }, "OpenCode SSE event");
+          }
           if (event.type === "message.part.delta") {
             logger.debug(
               {
@@ -81,7 +90,7 @@ async function readSseStream(
               "SSE delta detail",
             );
           }
-          if (isOpenCodeSseVerbose()) {
+          if (isOpenCodeSseVerbose() && shouldLogSseEventAtInfo(event.type)) {
             logger.info(
               {
                 opencodeEvent: openCodeEventForVerboseLog(event),

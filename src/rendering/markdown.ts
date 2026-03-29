@@ -1,6 +1,33 @@
 import { lexer, marked, walkTokens } from "marked";
-import type { Tokens } from "marked";
+import type { Parser, Tokens } from "marked";
 import sanitizeHtml from "sanitize-html";
+
+/**
+ * Telegram HTML does not support `<ul>` / `<ol>` / `<li>`; sanitize-html drops them and list markers vanish.
+ * Render lists as plain lines with `•` / `1.` and `<br>` (GFM task items use ☐/☑ via checkbox renderer).
+ */
+marked.use({
+  renderer: {
+    checkbox({ checked }: { checked: boolean }) {
+      return checked ? "☑ " : "☐ ";
+    },
+    list(this: { parser: Parser }, token: Tokens.List) {
+      let n = typeof token.start === "number" ? token.start : 1;
+      const rows: string[] = [];
+      for (const item of token.items) {
+        const inner = this.parser.parse(item.tokens).trim();
+        if (item.task) {
+          const prefix = token.ordered ? `${n++}. ` : "";
+          rows.push(prefix + inner);
+        } else {
+          const prefix = token.ordered ? `${n++}. ` : "• ";
+          rows.push(prefix + inner);
+        }
+      }
+      return rows.join("<br>");
+    },
+  },
+});
 
 const TELEGRAM_MAX_LENGTH = 4096;
 const NEWLINE_LOOKBACK = 200;
@@ -102,6 +129,7 @@ export function renderFinalMessage(markdown: string): string[] {
       "code",
       "pre",
       "a",
+      "br",
       "tg-spoiler",
     ],
     allowedAttributes: {

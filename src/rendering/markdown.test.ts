@@ -41,6 +41,23 @@ describe("renderFinalMessage", () => {
     expect(result[0]).toContain('<a href="https://x.com"');
   });
 
+  it("renders GFM bullet lists with • and <br> (Telegram HTML has no ul/li)", () => {
+    const result = renderFinalMessage("- alpha\n- beta");
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain("•");
+    expect(result[0]).toMatch(/•[^<]*alpha/);
+    expect(result[0]).toMatch(/•[^<]*beta/);
+    expect(result[0]).toMatch(/<br\s*\/?>/);
+  });
+
+  it("renders ordered lists with numbers and <br>", () => {
+    const result = renderFinalMessage("1. first\n2. second");
+    expect(result).toHaveLength(1);
+    expect(result[0]).toContain("1.");
+    expect(result[0]).toContain("2.");
+    expect(result[0]).toMatch(/<br\s*\/?>/);
+  });
+
   it("splits string of 5000 'a' chars separated by newlines into multiple chunks ≤ 4096", () => {
     // Build a string that's ~5000 chars with newlines so it must split
     const line = "a".repeat(100);
