@@ -9,16 +9,16 @@
 
 ---
 
-## Permission: two buttons vs API (`once` / `always` / `reject`)
+## Permission: inline keyboard vs API (`once` / `always` / `reject`)
 
 | Option | Description | Selected |
 |--------|-------------|----------|
-| Allow → `once`, Deny → `reject` only | Matches roadmap Allow/Deny; `always` not exposed | ✓ |
-| Three buttons (Allow once / Always / Deny) | Maps all API values; contradicts roadmap two-button UX |  |
-| Allow → `always` | Stronger default than `once`; changes security posture |  |
+| Allow → `once`, Deny → `reject` only | Two buttons; defers `always` |  |
+| **Three buttons → `once`, `always`, `reject`** | Full OpenCode permission reply enum | ✓ |
+| Allow → `always` only (single Allow) | Narrows to one grant style |  |
 
-**User's choice:** Allow → **`once`**, Deny → **`reject`**; defer **`always`** to backlog.
-**Notes:** Roadmap explicitly specifies Allow/Deny inline keyboard only.
+**User's choice (2026-03-29):** **Three inline buttons** mapping to **`reply: "once"`**, **`"always"`**, and **`"reject"`** respectively.
+**Notes:** Supersedes earlier two-button draft; areas 2–4 unchanged per user.
 
 ---
 
@@ -63,4 +63,4 @@
 
 ## Deferred Ideas
 
-- **`always`** permission grant as first-class Telegram UX — out of scope Phase 5.
+- None from this revision — **`always`** is in scope via three-button UX (see CONTEXT **D-01–D-04**).
