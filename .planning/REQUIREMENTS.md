@@ -51,7 +51,7 @@
 
 ### Files & Context
 
-- [x] **FILE-01**: User can send a file (document) to the bot and it is forwarded as context to the active OpenCode session
+- [x] **FILE-01**: User can send a **photo** to the bot and it is forwarded as context to the active OpenCode session (documents deferred per D-01)
 - [x] **FILE-02**: User can switch the active model via `/model <name>` (calls OpenCode config API)
 - [ ] **FILE-03**: User can clear the current session context via `/clear`
 

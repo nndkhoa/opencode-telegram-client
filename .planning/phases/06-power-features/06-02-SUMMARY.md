@@ -63,7 +63,7 @@ completed: 2026-03-29
 1. **Task 1: OpenCode prompt_async with photo bytes** — `9ff1afe` (feat)
 2. **Task 2: Photo handler + unsupported media + registration** — `632f847` (feat)
 
-**Plan metadata:** _(pending final docs commit)_
+**Plan metadata:** `5910dfb` (docs: complete plan)
 
 ## Files Created/Modified
 
