@@ -1,82 +1,66 @@
 # Phase 6: Power Features - Discussion Log
 
 > **Audit trail only.** Do not use as input to planning, research, or execution agents.
-> Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
+> Decisions are captured in CONTEXT.md — this log preserves the Q&A.
 
 **Date:** 2026-03-29
 **Phase:** 6-Power Features
-**Areas discussed:** File uploads, `/clear`, Logging policy, README scope, Overlap/guards
+**Areas discussed:** File uploads, `/clear`, Logging, README, Overlap/guards
 
 ---
 
-## File uploads (Telegram → OpenCode)
+## Area 1 — File uploads
 
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Documents + photos | Download and forward as prompt file parts; caption as text in same turn | ✓ |
-| Documents only | Exclude photos | |
-| All media types | Voice, video, stickers | |
+| Question | Options considered | User choice |
+|----------|---------------------|-------------|
+| Media types | documents, photos, video | **Photos only** (v1) |
+| Unsupported types | short reply vs silent | **2a** — short “not supported yet” |
+| Caption | send with file vs ignore | **3b** — **ignore caption** |
+| Extra rules | — | **4a** — defer overlap to Area 5 |
 
-**User's choice:** Discuss all areas — **documents + photos**; other media explicit not-supported reply (**D-03**).
-**Notes:** Wire format deferred to OpenCode `GET /doc` / research (**D-01**).
-
----
-
-## `/clear` semantics
-
-| Option | Description | Selected |
-|--------|-------------|----------|
-| API-native clear | Use dedicated clear route if present in OpenCode | ✓ (preferred path) |
-| Delete + recreate session | `DELETE /session` + new session + registry rebind | ✓ (fallback per **D-05**) |
-| Confirmation prompt | Second step before clear | |
-
-**User's choice:** **No** confirmation (**D-08**); abort in-flight first (**D-07**); clear MCP pending (**D-06**).
+**Notes:** Conflicts with **FILE-01** “document” wording — resolve in planning/requirements update.
 
 ---
 
-## Logging policy (pino)
+## Area 2 — `/clear`
 
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Full bodies at info | Log entire prompts/responses | |
-| Truncated / leveled | Info for metadata; bodies debug or truncated | ✓ (**D-10**, **D-13**) |
-| No Telegram ids | Privacy-minimal | |
-| Log user/chat ids | Operational debugging on allowlisted bot | ✓ (**D-09**) |
-
-**User's choice:** Structured JSON prod, pretty dev (**D-12**); no secrets; SSE deltas not at info (**D-13**).
+| Question | Options considered | User choice |
+|----------|---------------------|-------------|
+| Implement `/clear`? | yes / no | **No** — **use `/new` instead**; no clear command |
 
 ---
 
-## README scope
+## Area 3 — Logging
 
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Minimal | Env + run only | |
-| Minimal + troubleshooting | Add common failure modes | ✓ (**D-14**) |
-
-**User's choice:** Table + run + short troubleshooting.
-
----
-
-## Overlap / guards (files vs streaming & MCP)
-
-| Option | Description | Selected |
-|--------|-------------|----------|
-| Same busy guard as text | Reject file when streaming | ✓ (**D-16**) |
-| File as MCP answer | Allow file to satisfy free-text question | |
-| Require text for MCP | File rejected with guidance | ✓ (**D-17**) |
-
-**User's choice:** Align with text busy behavior; files do not satisfy MCP prompts.
+| Question | User choice |
+|----------|-------------|
+| Incoming Telegram (info) | **1a** — user id, chat id, update type, message id, timestamp |
+| OpenCode HTTP (info) | **2a** — method, path, session id; no full bodies |
+| SSE (info) | **3a** — event type + session id only; no token deltas |
+| Output | **4b** — stdout + **daily-rotating log file under `logs/`** |
 
 ---
 
-## Claude's Discretion
+## Area 4 — README
 
-- OpenCode request bodies for file parts and exact clear sequence
-- Truncate lengths and pino field layout
-- grammY file download details
+| Question | User choice |
+|----------|-------------|
+| Depth | **1a** — minimal: what it is, install, env table, run |
+| Mention `logs/` / rotation? | **2c** — **no** |
+| External links | **3** — **none** |
 
-## Deferred Ideas
+---
 
-- Message queue while streaming (**v2**)
-- Log DB / query UI (out of scope for v1)
+## Area 5 — Overlap (photo vs busy / MCP)
+
+| Question | User choice |
+|----------|-------------|
+| Busy + photo | **1a** — same as text (**⏳** wait) |
+| MCP free-text + photo | **2a** — not valid; text or `/cancel` |
+| MCP keyboard + photo | **3a** — same as free-text path |
+
+---
+
+## Earlier mistaken pass
+
+An initial run wrote context using **defaults without user decisions**; user requested **discussion again**. This log reflects **subsequent user answers only**.

@@ -6,49 +6,48 @@
 <domain>
 ## Phase Boundary
 
-Ship **file uploads** into the active OpenCode session, implement **`/clear`** for session context reset, **complete structured logging** (incoming Telegram, outgoing OpenCode requests, SSE/event summaries, errors) per requirements, and a **README** for setup and run. **`/model`** is already implemented in Phases 4.1/4.2; this phase **verifies** alignment with `/status` and documents behavior rather than re-building model switching.
+Deliver **photo-only** ingestion into the active OpenCode session (with guards below), **structured logging** (Telegram incoming, OpenCode requests, SSE summaries, errors) with **daily-rotating files under `logs/`** plus stdout, a **minimal README** (install, env table, run — no external links, no logging section per user), and **verify** existing **`/model`** vs **`/status`** (**FILE-02**). **Do not implement `/clear`** — users start fresh context with **`/new <name>`** (and existing session commands) instead of a dedicated clear command (**FILE-03** satisfied by **`/new`**, not **`/clear`**).
 
-Requirements in scope: **FILE-01**, **FILE-03**, **LOG-01**–**LOG-05**, **INFRA-03**; **FILE-02** verification/docs only.
+**Requirements alignment note:** **FILE-01** currently mentions **document**; this phase implements **photos only** per user decision — update **REQUIREMENTS.md** / traceability during planning if needed.
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### File uploads (Telegram → OpenCode)
-- **D-01:** Support **`document`** messages and **`photo`** messages. Download the file from Telegram (best photo size for `photo` arrays), forward into the active session’s next **`prompt_async`** using **file parts** (exact wire shape and any upload helper endpoints — **researcher** confirms against OpenCode `GET /doc` / SDK types).
-- **D-02:** Include **caption** text when present as accompanying **text** in the same prompt (same user turn as the file).
-- **D-03:** **Other media** (voice, video, stickers, etc.) — reply with a short **not supported in v1** message (no silent drop).
-- **D-04:** Enforce the same **allowlist** and **session resolution** as text messages (`SessionRegistry.getOrCreateDefault` / active session).
+### Photo uploads (Telegram → OpenCode)
+- **D-01:** **Photos only** in v1 — handle **`message:photo`** (download best/largest size appropriate for the model). **Do not** handle **`document`** in this phase unless scope is explicitly expanded later.
+- **D-02:** **Ignore caption** — do **not** send caption text to OpenCode (**3b**).
+- **D-03:** Any **non-photo** media (documents, voice, video, stickers, etc.): reply with a **short “not supported yet”** message (**2a**), not silent ignore.
+- **D-04:** Same **allowlist** and **session resolution** as text (`SessionRegistry` / active session).
 
-### `/clear`
-- **D-05:** **`/clear`** means **discard conversation context** for the **current active OpenCode session** for this chat. **Implementation strategy (locked intent):** use the **smallest official OpenCode operation** that achieves an empty or fresh thread for that session; if no dedicated “clear messages” route exists, **delete the OpenCode session and create a new one**, then **rebind** the chat’s active session ID in **`SessionRegistry`** (same high-level outcome as a fresh thread without requiring a new Telegram-side “named session”).
-- **D-06:** **`/clear`** clears **pending MCP interactive state** for the chat (same family of rules as session switch / **MCP-06**).
-- **D-07:** **`/clear`** **aborts** an in-flight streamed turn (**`POST .../abort`**) before applying reset, consistent with not leaving dangling streams.
-- **D-08:** **No** extra confirmation step (fast local-dev UX); **`/help`** text should state that **`/clear` is destructive** to the current session’s conversation.
+### `/clear` — not in scope
+- **D-05:** **No `/clear` command.** Fresh context is achieved via **`/new`** (and related session behavior), consistent with Phase 4.1 direction. Do not add **`/clear`** to BotFather menu or handlers for this phase.
 
 ### Logging (pino)
-- **D-09:** **LOG-01:** Log every incoming Telegram update relevant to the bot: at minimum **user id**, **chat id**, **update type** / message kind, **timestamp**, and **message id** where applicable.
-- **D-10:** **LOG-02 / LOG-03:** Log outgoing OpenCode HTTP calls and **non-delta** responses at **info**: **method**, **path**, **session id** when applicable; **truncate or omit** large bodies at **info** (full bodies only at **debug** if needed for development).
-- **D-11:** **LOG-04:** Log Telegram API errors and OpenCode errors with **enough context** to debug (endpoint, session id, error message / code); avoid logging secrets.
-- **D-12:** **LOG-05:** **Structured JSON** in production; **human-readable** (`pino-pretty`) in non-production — extend existing `src/logger.ts` rather than introducing a second logger.
-- **D-13:** **Never** log **`TELEGRAM_BOT_TOKEN`** or other secrets; **never** log full **SSE `message.part.delta` streams** at **info** (aggregate or **debug**-only sampling).
+- **D-06:** **LOG-01 (incoming Telegram)** at **info**: **user id**, **chat id**, **update type**, **message id**, **timestamp**.
+- **D-07:** **LOG-02 / LOG-03 (OpenCode HTTP)** at **info**: **method**, **path**, **session id** — **no** full bodies at info.
+- **D-08:** **SSE / streaming** at **info**: **event type** + **session id** only — **no** per-token delta logging at info.
+- **D-09:** **LOG-04:** Errors from Telegram and OpenCode with actionable context; **never** log secrets (e.g. bot token).
+- **D-10:** **LOG-05:** Structured **JSON**; extend **`src/logger.ts`**. **Output:** **stdout** and a **log file** with **daily rotation** under project **`logs/`** (create directory as needed; exact transport — **Claude’s discretion**, e.g. rotating file sink compatible with pino).
+- **D-11:** **README does not** document **`logs/`**, rotation, or logging setup (**2c** for Area 4).
 
 ### README (INFRA-03)
-- **D-14:** **README.md** includes: **what the project is**, **prerequisites** (Node version, local OpenCode), **required env vars** (table), **install**, **how to run**, **OpenCode base URL** assumption (`localhost:4096`), and a **short troubleshooting** section (**connection refused** to OpenCode, **allowlist** misconfiguration).
+- **D-12:** **Minimal only:** what the project is, **install**, **env vars table**, **how to run** (**1a**). No troubleshooting section required by this context.
+- **D-13:** **No external links** to OpenCode docs, Telegram BotFather, etc. (**3** — “nothing”).
 
-### Model switching (FILE-02 — verification)
-- **D-15:** No behavioral rewrite of **`/model`** unless Phase 6 testing finds a **bug** or **REQ gap**; **`/status`** and **`/model`** should remain **consistent** with existing shared resolution (Phases 4.1/4.2).
+### Model switching (FILE-02)
+- **D-14:** **Regression / consistency check** only — **`/model`** and **`/status`** stay aligned with Phases 4.1/4.2; no redesign unless a bug is found.
 
-### Concurrency & MCP overlap (files)
-- **D-16:** If the chat is **busy** with an in-flight stream (same guard as text): **do not** process a new file — reply with the existing **⏳** pattern.
-- **D-17:** If the chat is **awaiting an MCP free-text answer**: **do not** treat a file as the answer — reply that **text** is required (or user may **`/cancel`**). Same idea if a **keyboard** prompt is pending: **file does not satisfy** the prompt.
+### Overlap — photos vs busy & MCP
+- **D-15:** If chat is **busy** (streaming in progress): **same behavior as text** — **⏳** wait reply; **do not** start a new **`prompt_async`** for the photo (**1a**).
+- **D-16:** If **awaiting MCP free-text** answer: **photo is not** a valid answer — short message to **reply with text** or **`/cancel`** (**2a**).
+- **D-17:** If **MCP inline keyboard** prompt is active: **photo does not** satisfy the prompt — same guidance as **D-16** (**3a**).
 
 ### Claude's Discretion
-- Exact **OpenCode** request bodies for **file parts** and the precise **clear** sequence once `GET /doc` is consulted
-- Telegram **download** helpers (grammY `getFile` flow), **mime** handling, and **size** limits messaging
-- Exact **pino** child loggers / field names and **truncate** lengths for bodies
-- README **tone** and exact subsection titles
+- OpenCode **file/image part** wire format from **`GET /doc`**
+- **`logs/`** naming pattern, retention, and rotating file implementation details
+- Exact copy for “not supported” and MCP conflict messages
 
 </decisions>
 
@@ -58,19 +57,18 @@ Requirements in scope: **FILE-01**, **FILE-03**, **LOG-01**–**LOG-05**, **INFR
 **Downstream agents MUST read these before planning or implementing.**
 
 ### Requirements & roadmap
-- `.planning/ROADMAP.md` — Phase 6 goal and success criteria
-- `.planning/REQUIREMENTS.md` — FILE-01, FILE-03, LOG-01–LOG-05, INFRA-03; FILE-02 cross-check
-- `.planning/PROJECT.md` — Core value, constraints, out-of-scope logging storage
+- `.planning/ROADMAP.md` — Phase 6 goal (reconcile **`/clear`** / **FILE-03** with **D-05** if roadmap still says **`/clear`**)
+- `.planning/REQUIREMENTS.md` — LOG-01–LOG-05, INFRA-03, FILE-01 (**photo vs document**), FILE-02, FILE-03
+- `.planning/PROJECT.md` — Constraints, out-of-scope log DB
 
 ### OpenCode API & architecture
-- `.planning/research/ARCHITECTURE.md` — Sessions, `prompt_async` **parts**, `DELETE /session/:id`, message listing, config, logging boundary notes
-- `.planning/research/SUMMARY.md` — Synthesized stack and phase ordering notes
-- **`GET /doc`** on the local OpenCode server (OpenAPI) — **mandatory** for file-part shapes and any **clear/reset** routes available in the installed version
+- `.planning/research/ARCHITECTURE.md` — `prompt_async` **parts**, sessions
+- **`GET /doc`** on the local OpenCode server — image/file part shapes for the installed version
 
 ### Prior phase patterns
-- `.planning/phases/05-mcp-questions-permissions/05-CONTEXT.md` — Pending interactive state, **MCP-06** clear hooks
-- `.planning/phases/04-session-commands/04-CONTEXT.md` — `SessionRegistry`, command ordering, **`/cancel`**
-- `.planning/phases/04.1-model-switching-context-clear/04.1-CONTEXT.md` — **`/model`** / config API decisions (superseded for **`/clear`** by this phase’s **D-05**–**D-08**)
+- `.planning/phases/05-mcp-questions-permissions/05-CONTEXT.md` — Pending interactive, **MCP-06**
+- `.planning/phases/04-session-commands/04-CONTEXT.md` — **`/new`**, **`SessionRegistry`**
+- `.planning/phases/04.1-model-switching-context-clear/04.1-CONTEXT.md` — **`/model`**, **`/clear`** dropped in 4.1 (**superseded here** by **D-05**)
 
 </canonical_refs>
 
@@ -78,36 +76,34 @@ Requirements in scope: **FILE-01**, **FILE-03**, **LOG-01**–**LOG-05**, **INFR
 ## Existing Code Insights
 
 ### Reusable Assets
-- `src/logger.ts` — pino baseline; extend for component loggers and redaction helpers
-- `src/bot/handlers/message.ts` — text path and busy/MCP guards; **new** handler(s) for `message:document` / `message:photo` should reuse the same guards (**D-16**, **D-17**)
-- `src/opencode/session.ts` — `prompt_async` client; extend for multipart / parts payloads per OpenCode spec
-- `src/session/registry.ts` — active session per chat; **rebind** after session delete+recreate for **`/clear`**
-- `src/bot/handlers/cmd-cancel.ts` (or equivalent) — **abort** pattern for **D-07**
+- `src/logger.ts` — extend for dual output + rotation
+- `src/bot/handlers/message.ts` — text guards; add **`message:photo`** path reusing busy/MCP checks (**D-15**–**D-17**)
+- `src/opencode/session.ts` — `prompt_async`; extend for image parts per OpenCode spec
+- `src/session/registry.ts` — active session binding
 
 ### Established Patterns
-- Commands registered **before** catch-all handlers; **`/clear`** as a **bot.command** handler
-- Emoji/status copy for errors and waits (**⏳**, **❌**, **✅**)
-- Single shared **SSE** connection; logging should not duplicate full delta traffic (**D-13**)
+- Busy guard and MCP await behavior mirror text (**D-15**–**D-17**)
+- Commands before catch-all; **no** new **`clear`** command
 
 ### Integration Points
-- `src/bot/index.ts` — register document/photo handlers; register **`/clear`**
-- `src/main.ts` — optional **`setMyCommands`** update to include **`/clear`**
-- OpenCode HTTP layer — any new **file upload** URL if required by API, else inline **parts** on **`prompt_async`**
+- `src/bot/index.ts` — register photo handler
+- `src/main.ts` — **no** `setMyCommands` entry for **`clear`**
 
 </code_context>
 
 <specifics>
 ## Specific Ideas
 
-- **2026-03-29:** User asked to discuss **all** listed gray areas; decisions above use **recommended defaults** for file types, **`/clear`** semantics, logging policy, README depth, and file-vs-MCP overlap.
+- User decisions captured **2026-03-29** across Areas 1–5 (photo-only, no **`/clear`**, logging + daily **`logs/`**, minimal README without links or logging docs, overlap rules).
 
 </specifics>
 
 <deferred>
 ## Deferred Ideas
 
-- **Queueing** user messages while streaming (**v2 ADV-03**) — remains out of scope; **D-16** keeps **reject while busy**
-- **Persistent log database / querying** — **PROJECT.md** out of scope; console/file only
+- **Document uploads** — not in v1 scope per **D-01**
+- **README** troubleshooting + logging docs — deferred by **D-12** / **D-11**
+- **External doc links** in README — deferred by **D-13**
 
 </deferred>
 
