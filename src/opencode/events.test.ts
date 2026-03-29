@@ -6,7 +6,6 @@ import {
   isQuestionRejected,
   isQuestionReplied,
   parseEvent,
-  type OpenCodeEvent,
 } from "./events.js";
 
 describe("parseEvent + interactive SSE fixtures", () => {
@@ -29,8 +28,9 @@ describe("parseEvent + interactive SSE fixtures", () => {
     });
     const ev = parseEvent(raw);
     expect(ev).not.toBeNull();
-    expect(isQuestionAsked(ev as OpenCodeEvent)).toBe(true);
-    if (isQuestionAsked(ev as OpenCodeEvent)) {
+    if (!ev) return;
+    expect(isQuestionAsked(ev)).toBe(true);
+    if (isQuestionAsked(ev)) {
       expect(ev.properties.sessionID).toBe("sess-abc");
       expect(ev.properties.id).toBe("q-req-1");
       expect(ev.properties.questions[0]?.header).toBe("Pick");
@@ -51,8 +51,9 @@ describe("parseEvent + interactive SSE fixtures", () => {
     });
     const ev = parseEvent(raw);
     expect(ev).not.toBeNull();
-    expect(isPermissionAsked(ev as OpenCodeEvent)).toBe(true);
-    if (isPermissionAsked(ev as OpenCodeEvent)) {
+    if (!ev) return;
+    expect(isPermissionAsked(ev)).toBe(true);
+    if (isPermissionAsked(ev)) {
       expect(ev.properties.sessionID).toBe("sess-xyz");
       expect(ev.properties.id).toBe("p-req-1");
     }
@@ -68,8 +69,10 @@ describe("parseEvent + interactive SSE fixtures", () => {
       },
     });
     const ev = parseEvent(raw);
-    expect(isQuestionReplied(ev as OpenCodeEvent)).toBe(true);
-    if (isQuestionReplied(ev as OpenCodeEvent)) {
+    expect(ev).not.toBeNull();
+    if (!ev) return;
+    expect(isQuestionReplied(ev)).toBe(true);
+    if (isQuestionReplied(ev)) {
       expect(ev.properties.requestID).toBe("r1");
       expect(ev.properties.answers).toEqual([["yes"], ["a", "b"]]);
     }
@@ -81,7 +84,9 @@ describe("parseEvent + interactive SSE fixtures", () => {
       properties: { sessionID: "s1", requestID: "r9" },
     });
     const ev = parseEvent(raw);
-    expect(isQuestionRejected(ev as OpenCodeEvent)).toBe(true);
+    expect(ev).not.toBeNull();
+    if (!ev) return;
+    expect(isQuestionRejected(ev)).toBe(true);
   });
 
   it("parses permission.replied", () => {
@@ -94,8 +99,10 @@ describe("parseEvent + interactive SSE fixtures", () => {
       },
     });
     const ev = parseEvent(raw);
-    expect(isPermissionReplied(ev as OpenCodeEvent)).toBe(true);
-    if (isPermissionReplied(ev as OpenCodeEvent)) {
+    expect(ev).not.toBeNull();
+    if (!ev) return;
+    expect(isPermissionReplied(ev)).toBe(true);
+    if (isPermissionReplied(ev)) {
       expect(ev.properties.reply).toBe("once");
     }
   });
