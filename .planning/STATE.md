@@ -5,7 +5,7 @@ milestone_name: MVP
 status: complete
 stopped_at: v1.0 MVP shipped and archived — planning next milestone
 last_updated: "2026-03-29T19:00:00.000Z"
-last_activity: 2026-03-30 - Completed quick task 260330-hej: Add dev/pro BOT_MODE (long polling vs webhook)
+last_activity: 2026-03-30 - Completed quick task 260330-hej: add dev/pro mode for bot: dev uses long polling, pro uses webhook
 progress:
   total_phases: 8
   completed_phases: 8
