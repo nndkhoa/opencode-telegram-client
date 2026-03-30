@@ -56,43 +56,53 @@ export function makePhotoHandler(
       return;
     }
 
+    // Fix 4: Resolve file metadata (cheap — just file_path, no download yet)
     const tgFile = await ctx.getFile();
     if (!tgFile.file_path) {
       await ctx.reply("❌ Could not download this photo.");
       return;
     }
 
-    const tgUrl = `https://api.telegram.org/file/bot${config.botToken}/${tgFile.file_path}`;
-    let buf: Buffer;
-    try {
-      const res = await fetch(tgUrl);
-      if (!res.ok) throw new Error(`Telegram file HTTP ${res.status}`);
-      buf = Buffer.from(await res.arrayBuffer());
-    } catch (err) {
-      logger.error({ err, chatId }, "Failed to download Telegram photo");
-      await ctx.reply("❌ Could not download this photo.");
-      return;
-    }
-
-    const mime = mimeFromTelegramPath(tgFile.file_path);
-    const filename = tgFile.file_path.split("/").pop() ?? "photo.jpg";
-
+    // Fix 4: Send "⏳ Thinking..." immediately after we have the file_path,
+    // before the actual photo bytes are downloaded. The download happens async
+    // so the webhook handler (and user) isn't blocked by potentially large file fetches.
     const sentMsg = await ctx.reply("⏳ Thinking...");
     const messageId = sentMsg.message_id;
     manager.startTurn(sessionId, chatId, messageId);
 
-    try {
-      await ensurePersistedModelApplied(openCodeUrl);
-      await sendPromptAsyncWithPhoto(openCodeUrl, sessionId, buf, mime, { filename });
-      logger.info({ chatId, sessionId }, "Photo prompt sent to OpenCode");
-    } catch (err) {
-      logger.error({ err, chatId, sessionId }, "sendPromptAsyncWithPhoto failed");
-      manager.endTurn(sessionId);
-      await ctx.api.editMessageText(
-        chatId,
-        messageId,
-        "❌ OpenCode is unreachable. Make sure it's running at localhost:4096."
-      );
-    }
+    const tgUrl = `https://api.telegram.org/file/bot${config.botToken}/${tgFile.file_path}`;
+    const mime = mimeFromTelegramPath(tgFile.file_path);
+    const filename = tgFile.file_path.split("/").pop() ?? "photo.jpg";
+
+    // Download + send to OpenCode async — does not block webhook response
+    (async () => {
+      let buf: Buffer;
+      try {
+        const res = await fetch(tgUrl);
+        if (!res.ok) throw new Error(`Telegram file HTTP ${res.status}`);
+        buf = Buffer.from(await res.arrayBuffer());
+      } catch (err) {
+        logger.error({ err, chatId }, "Failed to download Telegram photo");
+        manager.endTurn(sessionId);
+        await ctx.api.editMessageText(chatId, messageId, "❌ Could not download this photo.");
+        return;
+      }
+
+      try {
+        await ensurePersistedModelApplied(openCodeUrl);
+        await sendPromptAsyncWithPhoto(openCodeUrl, sessionId, buf, mime, { filename });
+        logger.info({ chatId, sessionId }, "Photo prompt sent to OpenCode");
+      } catch (err) {
+        logger.error({ err, chatId, sessionId }, "sendPromptAsyncWithPhoto failed");
+        manager.endTurn(sessionId);
+        await ctx.api.editMessageText(
+          chatId,
+          messageId,
+          "❌ OpenCode is unreachable. Make sure it's running at localhost:4096."
+        );
+      }
+    })().catch((err: unknown) => {
+      logger.error({ err, chatId }, "Unhandled error in photo async pipeline");
+    });
   };
 }

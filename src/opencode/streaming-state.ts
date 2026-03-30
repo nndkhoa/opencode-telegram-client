@@ -13,6 +13,7 @@ import {
 import {
   formatAssistantFooterHtml,
   resolveAssistantFooterLines,
+  type AssistantFooterInfo,
 } from "./assistant-meta.js";
 import type { SessionRegistry } from "../session/registry.js";
 import { extractOpenCodeErrorMessage } from "./open-errors.js";
@@ -91,6 +92,12 @@ export type TurnState = {
    * interim cannot overwrite the final HTML message.
    */
   pendingInterimEdit: Promise<unknown>;
+  /**
+   * Footer info cached from `message.updated` SSE events (role=assistant).
+   * Populated as soon as OpenCode emits model/agent info during streaming,
+   * so session.idle can use it directly without an extra HTTP round-trip.
+   */
+  footerInfo: AssistantFooterInfo | null;
 };
 
 function escapeHtml(text: string): string {
@@ -136,6 +143,7 @@ export class StreamingStateManager {
       thinkingBuffer: "",
       lastEditAt: Date.now(),
       pendingInterimEdit: Promise.resolve(),
+      footerInfo: null,
     });
   }
 
@@ -214,6 +222,28 @@ export class StreamingStateManager {
             return;
           }
         }
+        // Cache model/agent from assistant message.updated so session.idle
+        // can build the footer without an extra HTTP round-trip.
+        if (role === "assistant") {
+          const turn = this.turns.get(messageUpdated.sessionID);
+          if (turn) {
+            const i = info as {
+              modelID?: string;
+              providerID?: string;
+              agent?: string;
+              mode?: string;
+            };
+            if (i.modelID) {
+              const modelRef = i.providerID
+                ? `${i.providerID}/${i.modelID}`
+                : i.modelID;
+              const rawAgent = typeof i.agent === "string" ? i.agent.trim() : "";
+              const rawMode = typeof i.mode === "string" ? i.mode.trim() : "";
+              const agentLabel = rawAgent || rawMode || "—";
+              turn.footerInfo = { modelRef, agentLabel };
+            }
+          }
+        }
       }
     }
 
@@ -262,7 +292,11 @@ export class StreamingStateManager {
       // Await any in-flight interim edit so it cannot overwrite the final HTML message
       await pendingInterimEdit;
 
-      const { modelRef, agentLabel } = await resolveAssistantFooterLines(this.openCodeUrl, sessionID);
+      // Use footer info cached from SSE message.updated events (zero HTTP cost).
+      // Fall back to HTTP only when the cache is empty (e.g. very short turns where
+      // message.updated with modelID arrived after session.idle).
+      const { modelRef, agentLabel } =
+        turn.footerInfo ?? (await resolveAssistantFooterLines(this.openCodeUrl, sessionID));
       const footerHtml = formatAssistantFooterHtml(modelRef, agentLabel);
       let chunks = renderFinalMessage(rawBuffer);
       chunks = appendHtmlFooterToChunks(chunks, footerHtml);

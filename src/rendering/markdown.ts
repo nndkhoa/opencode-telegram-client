@@ -34,7 +34,15 @@ marked.use({
 
     /** Inline code → <code>text</code> (explicit renderer to guarantee correct output). */
     codespan({ text }: Tokens.Codespan) {
-      return `<code>${text}</code>`;
+      // text is the raw decoded value from marked (e.g. "<div>" for `<div>`).
+      // Must HTML-escape before inserting into <code> so Telegram's parser
+      // sees a valid entity rather than a stray start tag, which causes
+      // "Can't find end tag corresponding to start tag" 400 errors.
+      const escaped = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      return `<code>${escaped}</code>`;
     },
 
     checkbox({ checked }: { checked: boolean }) {

@@ -1,6 +1,5 @@
 import "dotenv/config";
 import { createServer } from "node:http";
-import { webhookCallback } from "grammy";
 import { config } from "./config/env.js";
 import { logger } from "./logger.js";
 import { checkHealth } from "./opencode/health.js";
@@ -63,15 +62,35 @@ async function main(): Promise<void> {
 
   // Step 5: Start bot — long polling (dev) or webhook server (pro)
   if (config.botMode === "pro") {
-    // Pro mode: register webhook with Telegram, start HTTP server
-    await bot.api.setWebhook(config.webhookUrl!, {
-      allowed_updates: ["message", "callback_query"],
-    });
-    logger.info({ url: config.webhookUrl }, "Webhook registered with Telegram");
+    // Fix 3: Init bot (getMe) eagerly so first webhook request never pays cold-start RTT.
+    await bot.init();
+    logger.info({ username: bot.botInfo.username }, "Bot initialized");
 
-    const cb = webhookCallback(bot, "http");
-    const server = createServer(async (req, res) => {
-      await cb(req, res);
+    // Fix 1: Respond 200 OK to Telegram immediately, process update async.
+    // This eliminates head-of-line blocking — Telegram won't queue the next
+    // update waiting for handler completion, and there's no 10s timeout risk.
+    const server = createServer((req, res) => {
+      if (req.method !== "POST") {
+        res.writeHead(405).end();
+        return;
+      }
+      const chunks: Buffer[] = [];
+      req.on("data", (chunk: Buffer) => chunks.push(chunk));
+      req.on("end", () => {
+        // Acknowledge immediately — Telegram gets 200 OK before handler runs
+        res.writeHead(200, { "Content-Type": "application/json" }).end("{}");
+        try {
+          const update = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+          bot.handleUpdate(update).catch((err: unknown) => {
+            logger.error({ err }, "Unhandled error in bot.handleUpdate");
+          });
+        } catch (err) {
+          logger.error({ err }, "Failed to parse webhook payload");
+        }
+      });
+      req.on("error", (err) => {
+        logger.error({ err }, "Webhook request stream error");
+      });
     });
 
     const shutdown = (signal: string) => {
@@ -82,6 +101,10 @@ async function main(): Promise<void> {
     process.once("SIGINT", () => shutdown("SIGINT"));
     process.once("SIGTERM", () => shutdown("SIGTERM"));
 
+    // Start HTTP server BEFORE registering webhook with Telegram.
+    // If setWebhook is called first, Telegram immediately starts sending updates
+    // to a port that isn't listening yet → connection refused → Telegram retries
+    // with exponential backoff (5s, 10s, 20s, 40s…) causing ~50s cold-start delay.
     await new Promise<void>((resolve, reject) => {
       server.listen(config.webhookPort, () => {
         logger.info({ port: config.webhookPort }, "Webhook server listening");
@@ -89,6 +112,12 @@ async function main(): Promise<void> {
       });
       server.on("error", reject);
     });
+
+    // Pro mode: register webhook AFTER server is ready to accept connections.
+    await bot.api.setWebhook(config.webhookUrl!, {
+      allowed_updates: ["message", "callback_query"],
+    });
+    logger.info({ url: config.webhookUrl }, "Webhook registered with Telegram");
 
     // In pro mode we don't call bot.start() — keep process alive waiting for server close
     await new Promise<void>((resolve) => server.on("close", resolve));

@@ -64,8 +64,10 @@ export function makeMessageHandler(
       return;
     }
 
-    // MSG-02: send typing action immediately
-    await ctx.replyWithChatAction("typing");
+    // MSG-02: send "Thinking..." immediately so user gets instant feedback,
+    // then resolve/create session and fire the prompt afterward.
+    const sentMsg = await ctx.reply("⏳ Thinking...");
+    const messageId = sentMsg.message_id;
 
     // D-01: auto-create session for this chatId on first message via registry
     let sessionId: string;
@@ -74,15 +76,13 @@ export function makeMessageHandler(
       pending.rememberSessionChat(sessionId, chatId);
     } catch (err) {
       logger.error({ err, chatId }, "Failed to create OpenCode session");
-      await ctx.reply(
+      await ctx.api.editMessageText(
+        chatId,
+        messageId,
         "❌ OpenCode is unreachable. Make sure it's running at localhost:4096."
       );
       return;
     }
-
-    // Send initial "Thinking..." message — will be edited as tokens stream in
-    const sentMsg = await ctx.reply("⏳ Thinking...");
-    const messageId = sentMsg.message_id;
 
     // D-08: set busy BEFORE prompt_async fires
     manager.startTurn(sessionId, chatId, messageId);

@@ -207,6 +207,19 @@ describe("renderFinalMessage", () => {
     expect(result[0]).toContain("🔹 Other item");
   });
 
+  it("escapes HTML characters inside inline code (prevents Telegram 'Can\\'t find end tag' errors)", () => {
+    // Inline code containing angle brackets must be escaped as HTML entities,
+    // not passed as raw tags to Telegram's HTML parser.
+    const result = renderFinalMessage("Use `<div>` here");
+    expect(result[0]).toContain("<code>&lt;div&gt;</code>");
+    expect(result[0]).not.toContain("<code><div></code>");
+  });
+
+  it("escapes ampersands inside inline code", () => {
+    const result = renderFinalMessage("The `a && b` expression");
+    expect(result[0]).toContain("<code>a &amp;&amp; b</code>");
+  });
+
   it("renders list items with inline code correctly: bullet directly precedes code text", () => {
     const md = "- Skill `moodle` tại `.agents/skills/moodle/SKILL.md`\n- Mô tả ngắn";
     const result = renderFinalMessage(md);
