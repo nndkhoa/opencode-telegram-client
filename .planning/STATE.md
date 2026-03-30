@@ -5,7 +5,7 @@ milestone_name: MVP
 status: complete
 stopped_at: v1.0 MVP shipped and archived — planning next milestone
 last_updated: "2026-03-29T19:00:00.000Z"
-last_activity: 2026-03-29 - Completed quick task 260329-pxm: Telegram HTML emoji lists and paragraph breaks
+last_activity: 2026-03-30 - Completed quick task 260330-hej: Add dev/pro BOT_MODE (long polling vs webhook)
 progress:
   total_phases: 8
   completed_phases: 8
@@ -141,9 +141,10 @@ None yet.
 | 260329-hhx | After Telegram choice, remove inline keyboard once answer is submitted to OpenCode | 2026-03-29 | — | [260329-hhx-after-telegram-choice-remove-inline-keyb](./quick/260329-hhx-after-telegram-choice-remove-inline-keyb/) |
 | 260329-owj | Heartbeat SSE log silence; bullet/numbered lists in final HTML; OpenCode session.error / assistant error to Telegram | 2026-03-29 | 1589856 | [260329-owj-heartbeat-logging-list-rendering-in-fina](./quick/260329-owj-heartbeat-logging-list-rendering-in-fina/) |
 | 260329-pxm | Telegram messages: keep HTML formatting; replace unsupported structures (lists, numbering, tables) with emoji/visual alternatives | 2026-03-29 | b5dec0e | [260329-pxm-telegram-messages-keep-html-formatting-r](./quick/260329-pxm-telegram-messages-keep-html-formatting-r/) |
+| 260330-hej | Add dev/pro BOT_MODE: dev uses long polling, pro uses webhook server | 2026-03-30 | 5bd4834 | [260330-hej-add-dev-pro-mode-for-bot-dev-uses-long-p](./quick/260330-hej-add-dev-pro-mode-for-bot-dev-uses-long-p/) |
 
 ## Session Continuity
 
-Last session: 2026-03-29T10:05:02.055Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-03-30T12:36:00.000Z
+Stopped at: Completed quick task 260330-hej: Add dev/pro bot mode (long polling vs webhook)
 Resume file: None
