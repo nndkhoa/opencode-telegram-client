@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { createServer } from "node:http";
+import { webhookCallback } from "grammy";
 import { config } from "./config/env.js";
 import { logger } from "./logger.js";
 import { checkHealth } from "./opencode/health.js";
@@ -25,13 +27,13 @@ async function main(): Promise<void> {
 
   // CMD-07: Register BotFather command menu
   await bot.api.setMyCommands([
+    { command: "help", description: "Show all commands" },
     { command: "new", description: "Create and switch to a named session" },
-    { command: "switch", description: "Switch to an existing named session" },
-    { command: "sessions", description: "List all sessions for this chat" },
+    { command: "model", description: "Switch active AI model or list available models" },
     { command: "status", description: "Show active session and OpenCode health" },
     { command: "cancel", description: "Abort the current in-progress request" },
-    { command: "help", description: "Show all commands" },
-    { command: "model", description: "Switch active AI model or list available models" },
+    { command: "sessions", description: "List all sessions for this chat" },
+    { command: "switch", description: "Switch to an existing named session" },
   ]);
   logger.info("BotFather command menu registered");
 
@@ -59,22 +61,55 @@ async function main(): Promise<void> {
     },
   });
 
-  // Graceful shutdown
-  const shutdown = (signal: string) => {
-    logger.info({ signal }, "Shutting down...");
-    ac.abort();
-    bot.stop();
-  };
-  process.once("SIGINT", () => shutdown("SIGINT"));
-  process.once("SIGTERM", () => shutdown("SIGTERM"));
+  // Step 5: Start bot — long polling (dev) or webhook server (pro)
+  if (config.botMode === "pro") {
+    // Pro mode: register webhook with Telegram, start HTTP server
+    await bot.api.setWebhook(config.webhookUrl!, {
+      allowed_updates: ["message", "callback_query"],
+    });
+    logger.info({ url: config.webhookUrl }, "Webhook registered with Telegram");
 
-  // Step 5: Start bot (long polling — blocks until stopped)
-  logger.info("Bot starting (long polling)...");
-  await bot.start({
-    onStart: (info) => {
-      logger.info({ username: info.username }, "Bot started successfully");
-    },
-  });
+    const cb = webhookCallback(bot, "http");
+    const server = createServer(async (req, res) => {
+      await cb(req, res);
+    });
+
+    const shutdown = (signal: string) => {
+      logger.info({ signal }, "Shutting down...");
+      ac.abort();
+      server.close(() => logger.info("HTTP server closed"));
+    };
+    process.once("SIGINT", () => shutdown("SIGINT"));
+    process.once("SIGTERM", () => shutdown("SIGTERM"));
+
+    await new Promise<void>((resolve, reject) => {
+      server.listen(config.webhookPort, () => {
+        logger.info({ port: config.webhookPort }, "Webhook server listening");
+        resolve();
+      });
+      server.on("error", reject);
+    });
+
+    // In pro mode we don't call bot.start() — keep process alive waiting for server close
+    await new Promise<void>((resolve) => server.on("close", resolve));
+  } else {
+    // Dev mode: long polling (original behaviour)
+    logger.info("Bot starting (long polling)...");
+
+    const shutdown = (signal: string) => {
+      logger.info({ signal }, "Shutting down...");
+      ac.abort();
+      bot.stop();
+    };
+    process.once("SIGINT", () => shutdown("SIGINT"));
+    process.once("SIGTERM", () => shutdown("SIGTERM"));
+
+    await bot.start({
+      onStart: (info) => {
+        logger.info({ username: info.username }, "Bot started successfully");
+      },
+    });
+  }
 
   // Wait for SSE task to finish after abort
   await sseTask.catch(() => {});
