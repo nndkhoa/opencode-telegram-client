@@ -18,12 +18,18 @@ const EnvSchema = z.object({
         })
     )
     .pipe(z.array(z.number().int().positive()).nonempty()),
+  BOT_MODE: z.enum(["dev", "pro"]).default("dev"),
+  WEBHOOK_URL: z.string().url().optional(),
+  WEBHOOK_PORT: z.coerce.number().int().positive().default(3000),
 });
 
 export type Config = {
   botToken: string;
   openCodeUrl: string;
   allowedUserIds: Set<number>;
+  botMode: "dev" | "pro";
+  webhookUrl: string | undefined;
+  webhookPort: number;
 };
 
 export function parseEnv(raw: NodeJS.ProcessEnv): Config {
@@ -32,9 +38,17 @@ export function parseEnv(raw: NodeJS.ProcessEnv): Config {
     throw new Error(result.error.issues.map((i) => i.message).join("; "));
   }
   const d = result.data;
+
+  if (d.BOT_MODE === "pro" && !d.WEBHOOK_URL) {
+    throw new Error("WEBHOOK_URL is required when BOT_MODE=pro");
+  }
+
   return {
     botToken: d.BOT_TOKEN,
     openCodeUrl: d.OPENCODE_URL,
     allowedUserIds: new Set(d.ALLOWED_USER_IDS),
+    botMode: d.BOT_MODE,
+    webhookUrl: d.WEBHOOK_URL,
+    webhookPort: d.WEBHOOK_PORT,
   };
 }
