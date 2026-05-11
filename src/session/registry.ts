@@ -73,6 +73,39 @@ export class SessionRegistry {
     return this.chats.get(chatId)?.named.get(name.toLowerCase().trim());
   }
 
+  /**
+   * Remove a session from the registry (e.g. when OpenCode emits session.deleted).
+   * If the removed session was active, falls back to the default session (if available)
+   * or leaves active empty so the next message triggers auto-creation of a new default.
+   */
+  removeSession(chatId: number, sessionId: string): void {
+    const entry = this.chats.get(chatId);
+    if (!entry) return;
+
+    // Remove from named map if present
+    for (const [name, id] of entry.named) {
+      if (id === sessionId) {
+        entry.named.delete(name);
+        break;
+      }
+    }
+
+    // If this was the default session, clear it
+    if (entry.default === sessionId) {
+      entry.default = "";
+    }
+
+    // If this session was active, fall back to default or clear active
+    if (entry.active === sessionId) {
+      entry.active = entry.default || "";
+    }
+
+    // If the chat has no more sessions, remove the entire entry
+    if (!entry.default && entry.named.size === 0) {
+      this.chats.delete(chatId);
+    }
+  }
+
   list(chatId: number): Array<{ name: string; sessionId: string; active: boolean }> {
     const entry = this.chats.get(chatId);
     if (!entry) return [];

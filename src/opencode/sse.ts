@@ -110,7 +110,7 @@ async function readSseStream(
 
 export async function startSseLoop(opts: SseOptions): Promise<void> {
   const { baseUrl, signal, onEvent, onError } = opts;
-  const url = new URL("/event", baseUrl).toString();
+  const url = new URL("/global/event", baseUrl).toString();
   let attempt = 0;
 
   while (!signal.aborted) {
@@ -133,11 +133,29 @@ export async function startSseLoop(opts: SseOptions): Promise<void> {
         throw new Error("SSE response has no body");
       }
 
-      attempt = 0;
       logger.info({ url }, "SSE connected");
+      const streamStart = Date.now();
       await readSseStream(res, signal, onEvent);
       if (!signal.aborted) {
-        logger.warn({ url }, "SSE connection closed by server");
+        const streamDurationMs = Date.now() - streamStart;
+        logger.warn({ url, streamDurationMs }, "SSE connection closed by server");
+        // Only reset the backoff counter if the stream was genuinely long-lived
+        // (> 30 s). If the server closes immediately (e.g. only sending
+        // server.connected then closing), keep incrementing the attempt counter
+        // so exponential backoff engages and we don't tight-loop.
+        if (streamDurationMs > 30_000) {
+          attempt = 0;
+        }
+        const delay = backoffDelay(attempt);
+        attempt++;
+        logger.info({ delay, attempt }, `SSE reconnecting in ${delay}ms`);
+        await new Promise<void>((resolve, reject) => {
+          const t = setTimeout(resolve, delay);
+          signal.addEventListener("abort", () => {
+            clearTimeout(t);
+            reject(new DOMException("Aborted", "AbortError"));
+          }, { once: true });
+        }).catch(() => {/* aborted during wait — outer loop condition will break */});
       }
     } catch (err) {
       if (signal.aborted) break;

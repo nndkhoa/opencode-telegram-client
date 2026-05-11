@@ -2,10 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StreamingStateManager } from "./streaming-state.js";
 import type { Api } from "grammy";
 import type { SessionRegistry } from "../session/registry.js";
+import type { PendingInteractiveState } from "./interactive-pending.js";
+import * as assistantMeta from "./assistant-meta.js";
 
 vi.mock("./assistant-meta.js", () => ({
   formatAssistantFooterHtml: (m: string, a: string) => `<em>${m} · ${a}</em>`,
   resolveAssistantFooterLines: vi.fn().mockResolvedValue({ modelRef: "anthropic/x", agentLabel: "build" }),
+  fetchLastAssistantMessage: vi.fn().mockResolvedValue(null),
 }));
 
 function makeMockBot(): Api {
@@ -25,7 +28,16 @@ function makeMockRegistry(): SessionRegistry {
     hasNamed: vi.fn(),
     getNamedId: vi.fn(),
     list: vi.fn(),
+    removeSession: vi.fn(),
   } as unknown as SessionRegistry;
+}
+
+function makeMockPending(): PendingInteractiveState {
+  return {
+    getChatForSession: vi.fn().mockReturnValue(undefined),
+    rememberSessionChat: vi.fn(),
+    forgetSession: vi.fn(),
+  } as unknown as PendingInteractiveState;
 }
 
 describe("StreamingStateManager", () => {
@@ -35,7 +47,7 @@ describe("StreamingStateManager", () => {
 
   beforeEach(() => {
     registry = makeMockRegistry();
-    manager = new StreamingStateManager(registry, "http://localhost:4096");
+    manager = new StreamingStateManager(registry, "http://localhost:4096", makeMockPending());
     bot = makeMockBot();
   });
 
@@ -541,6 +553,98 @@ describe("StreamingStateManager", () => {
       const secondCall = vi.mocked(bot.editMessageText).mock.calls[1];
       expect(secondCall[2]).not.toMatch(/<br/i);
       expect(secondCall[2]).toMatch(/line one[\s\S]*line two[\s\S]*line three/);
+    });
+  });
+
+  describe("session.idle — out-of-band (no active turn)", () => {
+    let pending: PendingInteractiveState;
+
+    beforeEach(() => {
+      // Reset fetchLastAssistantMessage mock to null default before each test
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockReset();
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValue(null);
+      pending = {
+        getChatForSession: vi.fn().mockReturnValue(42),
+        rememberSessionChat: vi.fn(),
+        forgetSession: vi.fn(),
+      } as unknown as PendingInteractiveState;
+      manager = new StreamingStateManager(registry, "http://localhost:4096", pending);
+      bot = makeMockBot();
+    });
+
+    it("forwards assistant message via sendMessage when no active turn and chatId known", async () => {
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValueOnce({
+        id: "msg_oob_1",
+        text: "Response from webUI",
+        footerInfo: { modelRef: "openai/gpt-4o", agentLabel: "build" },
+      });
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+
+      expect(bot.sendMessage).toHaveBeenCalledWith(
+        42,
+        expect.stringMatching(/Response from webUI[\s\S]*<em>openai\/gpt-4o · build<\/em>/),
+        { parse_mode: "HTML" }
+      );
+      expect(bot.editMessageText).not.toHaveBeenCalled();
+    });
+
+    it("does not forward when chatId is not known", async () => {
+      vi.mocked(pending.getChatForSession as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValueOnce({
+        id: "msg_oob_2",
+        text: "Response",
+        footerInfo: { modelRef: "openai/gpt-4o", agentLabel: "build" },
+      });
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+
+      expect(bot.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it("does not forward when fetchLastAssistantMessage returns null", async () => {
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValueOnce(null);
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+
+      expect(bot.sendMessage).not.toHaveBeenCalled();
+    });
+
+    it("deduplicates: does not forward the same messageId twice", async () => {
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValueOnce({
+        id: "msg_oob_3",
+        text: "Unique response",
+        footerInfo: { modelRef: "openai/gpt-4o", agentLabel: "build" },
+      }).mockResolvedValueOnce({
+        id: "msg_oob_3",
+        text: "Unique response",
+        footerInfo: { modelRef: "openai/gpt-4o", agentLabel: "build" },
+      });
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+
+      // sendMessage should be called only once (dedup prevents second forward)
+      expect(bot.sendMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls back to plain text when HTML sendMessage fails", async () => {
+      vi.mocked(assistantMeta.fetchLastAssistantMessage).mockResolvedValueOnce({
+        id: "msg_oob_4",
+        text: "Plain text fallback",
+        footerInfo: { modelRef: "openai/gpt-4o", agentLabel: "build" },
+      });
+
+      vi.mocked(bot.sendMessage)
+        .mockRejectedValueOnce(new Error("Bad Request: can't parse entities"))
+        .mockResolvedValueOnce({} as any);
+
+      await manager.handleEvent({ type: "session.idle", properties: { sessionID: "ses_oob" } }, bot);
+
+      expect(bot.sendMessage).toHaveBeenCalledTimes(2);
+      const fallbackCall = vi.mocked(bot.sendMessage).mock.calls[1];
+      expect(fallbackCall[2]).toEqual({ parse_mode: "HTML" });
+      expect(fallbackCall[1]).toMatch(/Plain text fallback/);
     });
   });
 });

@@ -64,7 +64,7 @@ describe("makePhotoHandler", () => {
   beforeEach(() => {
     registry = makeMockRegistry();
     pending = makeMockPending();
-    manager = new StreamingStateManager(registry, openCodeUrl);
+    manager = new StreamingStateManager(registry, openCodeUrl, pending);
     vi.mocked(sendPromptAsyncWithPhoto).mockResolvedValue(undefined);
     vi.stubGlobal(
       "fetch",

@@ -73,7 +73,7 @@ describe("makeMessageHandler", () => {
   beforeEach(() => {
     registry = makeMockRegistry();
     pending = makeMockPending();
-    manager = new StreamingStateManager(registry, openCodeUrl);
+    manager = new StreamingStateManager(registry, openCodeUrl, pending);
     vi.mocked(sendPromptAsync).mockResolvedValue(undefined);
   });
 

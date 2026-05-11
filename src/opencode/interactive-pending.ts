@@ -117,6 +117,14 @@ export class PendingInteractiveState {
     this.byChat.delete(chatId);
   }
 
+  /**
+   * Remove the reverse sessionID→chatId mapping when a session is deleted or
+   * becomes stale. Prevents stale SSE events from being routed to the wrong chat.
+   */
+  forgetSession(sessionID: string): void {
+    this.sessionToChat.delete(sessionID);
+  }
+
   /** Clear if the pending question matches this requestID (after SSE or local submit). */
   clearOnQuestionReplied(chatId: number, requestID: string): void {
     const p = this.byChat.get(chatId);

@@ -31,6 +31,64 @@ export type MessagePartUpdatedEvent = {
   };
 };
 
+/** A single text part inside a message (for out-of-band message rendering). */
+export type MessageTextPart = {
+  type: "text";
+  text: string;
+};
+
+/** Minimal shape of an OpenCode UserMessage or AssistantMessage (SDK: Message). */
+export type OpenCodeMessage = {
+  id: string;
+  role: "user" | "assistant";
+  parts?: Array<{ type: string; text?: string; [key: string]: unknown }>;
+  error?: unknown;
+  modelID?: string;
+  providerID?: string;
+  agent?: string;
+  mode?: string;
+  [key: string]: unknown;
+};
+
+/**
+ * Fired when a message is created OR updated in a session (SDK: Event.message.updated).
+ * Used for both initial creation and subsequent edits — there is no separate message.added event.
+ */
+export type MessageUpdatedEvent = {
+  type: "message.updated";
+  properties: {
+    sessionID: string;
+    info: OpenCodeMessage;
+  };
+};
+
+/** Sync-event stream variant of message.updated (versioned). */
+export type MessageUpdatedSyncEvent = {
+  type: "message.updated.1";
+  data: {
+    sessionID: string;
+    info: OpenCodeMessage;
+  };
+};
+
+/** Fired when a session is deleted on the OpenCode server (SDK: Event.session.deleted). */
+export type SessionDeletedEvent = {
+  type: "session.deleted";
+  properties: {
+    sessionID: string;
+    info: Record<string, unknown>;
+  };
+};
+
+/** Sync-event stream variant of session.deleted (versioned). */
+export type SessionDeletedSyncEvent = {
+  type: "session.deleted.1";
+  data: {
+    sessionID: string;
+    info: Record<string, unknown>;
+  };
+};
+
 /** One option row for a structured question (SDK: QuestionOption). */
 export type QuestionOption = {
   label: string;
@@ -104,10 +162,46 @@ export type PermissionRepliedEvent = {
   };
 };
 
+/** New-style streaming events from /global/event (v1.14+). */
+export type SessionNextTextDeltaEvent = {
+  type: "session.next.text.delta";
+  properties: {
+    sessionID: string;
+    delta: string;
+    timestamp: number;
+  };
+};
+
+export type SessionNextTextEndedEvent = {
+  type: "session.next.text.ended";
+  properties: {
+    sessionID: string;
+    text: string;
+    timestamp: number;
+  };
+};
+
+export type SessionNextReasoningDeltaEvent = {
+  type: "session.next.reasoning.delta";
+  properties: {
+    sessionID: string;
+    reasoningID: string;
+    delta: string;
+    timestamp: number;
+  };
+};
+
 export type OpenCodeEvent =
   | MessagePartDeltaEvent
   | MessagePartUpdatedEvent
+  | MessageUpdatedEvent
+  | MessageUpdatedSyncEvent
   | SessionIdleEvent
+  | SessionDeletedEvent
+  | SessionDeletedSyncEvent
+  | SessionNextTextDeltaEvent
+  | SessionNextTextEndedEvent
+  | SessionNextReasoningDeltaEvent
   | QuestionAskedEvent
   | PermissionAskedEvent
   | QuestionRepliedEvent
@@ -117,7 +211,13 @@ export type OpenCodeEvent =
 
 export function parseEvent(raw: string): OpenCodeEvent | null {
   try {
-    return JSON.parse(raw) as OpenCodeEvent;
+    const parsed = JSON.parse(raw);
+    // /global/event wraps each event as { directory, project?, workspace?, payload: <Event> }
+    // /event (project-scoped) emits events directly. Handle both formats.
+    if (parsed && typeof parsed === "object" && "payload" in parsed) {
+      return parsed.payload as OpenCodeEvent;
+    }
+    return parsed as OpenCodeEvent;
   } catch {
     return null;
   }
@@ -148,4 +248,36 @@ export function getSessionIdFromAsked(
   event: QuestionAskedEvent | PermissionAskedEvent
 ): string {
   return event.properties.sessionID;
+}
+
+export function isSessionDeleted(
+  event: OpenCodeEvent
+): event is SessionDeletedEvent | SessionDeletedSyncEvent {
+  return event.type === "session.deleted" || event.type === "session.deleted.1";
+}
+
+export function isMessageUpdated(
+  event: OpenCodeEvent
+): event is MessageUpdatedEvent | MessageUpdatedSyncEvent {
+  return event.type === "message.updated" || event.type === "message.updated.1";
+}
+
+/** Extract the normalized payload from a message.updated or message.updated.1 event. */
+export function getMessageUpdatedPayload(
+  event: MessageUpdatedEvent | MessageUpdatedSyncEvent
+): { sessionID: string; info: OpenCodeMessage } {
+  if (event.type === "message.updated") {
+    return event.properties;
+  }
+  return event.data;
+}
+
+/** Extract the sessionID from a session.deleted or session.deleted.1 event. */
+export function getSessionDeletedId(
+  event: SessionDeletedEvent | SessionDeletedSyncEvent
+): string {
+  if (event.type === "session.deleted") {
+    return event.properties.sessionID;
+  }
+  return event.data.sessionID;
 }
